@@ -1,0 +1,2 @@
+F:\Datasets\MS_COCO
+F:\Datasets\NYUDv2

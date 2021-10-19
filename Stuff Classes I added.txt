@@ -1,0 +1,23 @@
+93 blanket
+101 carpet
+102-103 ceiling
+105 clothes
+108 cupboard
+109 curtain
+110 desk-stuff
+114-118 floor
+123 furniture
+130 light
+133 mirror-stuff
+152 rug
+156 shelf
+165 table
+168 towel
+171-177 wall
+180-181 window
+
+Ranged elements are
+102-103 for ceiling
+114-118 for floor
+171-178 for wall
+180-181 for window
