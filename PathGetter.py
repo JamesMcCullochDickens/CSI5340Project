@@ -10,3 +10,10 @@ def get_fp(dataset_name):
                 return path
     print("Dataset path not found")
     return -1
+
+def get_datasets_path():
+    with open(FilePathsfp, 'r') as paths:
+        for path in paths:
+            return path[0:-1] # return the first one
+    print("Dataset path not found")
+    return -1
