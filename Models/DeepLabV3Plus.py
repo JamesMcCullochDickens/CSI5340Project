@@ -170,7 +170,7 @@ def convert_to_separable_conv(module):
         new_module.add_module(name, convert_to_separable_conv(child))
     return new_module
 
-"""
+
 # sample DeepLabV3+
 rn_101 = ResNet.remove_head(ResNet.resnet101(pretrained=True, dilation_vals=[False, True, True])).cuda() # Stride 8 ResNet101
 backbone = ResNet.DeepLabV3PlusBackbone(rn_101)
@@ -178,4 +178,3 @@ dlV3Plus = DeepLabHeadV3Plus(backbone, in_channels=2048, low_level_channels=256,
 im = torch.rand(2, 3, 600, 600).cuda()
 output = dlV3Plus(im)
 debug = "debug"
-"""
