@@ -336,6 +336,11 @@ def remove_head(model):
     modules = modules[:-2]
     return torch.nn.Sequential(*modules)
 
+def remove_classification(model):
+    modules = list(model.children())
+    modules = modules[:-1]
+    return torch.nn.Sequential(*modules)
+
 
 class DeepLabV3PlusBackbone(torch.nn.Module):
     def __init__(self, backbone):

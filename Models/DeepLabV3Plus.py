@@ -2,9 +2,10 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 import Backbones.ResNet as ResNet
+import ExtraLosses.Losses as losses
 
 class DeepLabHeadV3Plus(nn.Module):
-    def __init__(self, backbone, in_channels, low_level_channels, num_classes, aspp_dilate=[12, 24, 36]):
+    def __init__(self, backbone, in_channels, low_level_channels, num_classes, aspp_dilate=[12, 24, 36], loss="ce"):
         super(DeepLabHeadV3Plus, self).__init__()
 
         self.backbone = backbone
@@ -23,8 +24,13 @@ class DeepLabHeadV3Plus(nn.Module):
             nn.Conv2d(256, num_classes, 1)
         )
         self._init_weight()
+        if loss == "ce":
+            self.loss = nn.CrossEntropyLoss(ignore_index=0)
+        elif loss == "focal_loss":
+            self.loss = losses.FocalLoss()
+            pass
 
-    def forward(self, ims):
+    def forward(self, ims, gt=None):
         im_height = ims.shape[2]
         im_width = ims.shape[3]
         feature = self.backbone(ims)
@@ -35,7 +41,12 @@ class DeepLabHeadV3Plus(nn.Module):
         output = self.classifier(torch.cat([low_level_feature, output_feature], dim=1))
         output = F.interpolate(output, (im_height, im_width), mode='bilinear',
                                        align_corners=False)
-        return output
+
+        if self.train:
+            loss = self.loss(output, gt)
+        else:
+            loss = None
+        return output, loss
 
     def _init_weight(self):
         for m in self.modules():
@@ -174,7 +185,8 @@ def convert_to_separable_conv(module):
 # sample DeepLabV3+
 rn_101 = ResNet.remove_head(ResNet.resnet101(pretrained=True, dilation_vals=[False, True, True])).cuda() # Stride 8 ResNet101
 backbone = ResNet.DeepLabV3PlusBackbone(rn_101)
-dlV3Plus = DeepLabHeadV3Plus(backbone, in_channels=2048, low_level_channels=256, num_classes=37).cuda()
-im = torch.rand(2, 3, 600, 600).cuda()
-output = dlV3Plus(im)
+dlV3Plus = DeepLabHeadV3Plus(backbone, in_channels=2048, low_level_channels=256, num_classes=37, loss="focal_loss").cuda()
+im = torch.rand(3, 3, 600, 600).cuda()
+gt = torch.randint(0, 36, (3, 600, 600)).cuda() # min 0
+output, loss = dlV3Plus(im, gt)
 debug = "debug"

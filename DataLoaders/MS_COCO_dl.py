@@ -10,6 +10,8 @@ import pprint as pp
 import json
 import GenericDataloader as g_dl
 import random
+import torch
+from torchvision import transforms
 
 outer_path = pg.get_fp("MS_COCO")
 train_2017_fp = os.path.join(outer_path, "train2017")
@@ -29,6 +31,12 @@ stuff_start_index = 92
 include_stuff = [93, 101, 102, 103, 105, 108, 109, 110, 114, 115, 116, 117, 118, 123, 130, 133, 152, 156, 165, 168, 171, 172, 173, 174, 175, 176, 177, 180, 181]
 stuff_range = ["ceiling", "floor", "wall", "window"] # classes that we will merge the stuff classes for (i.e. all types of floor going to one generic floor class)
 total_num_classes = 182
+
+# transforms
+
+transform_to_tensor = transforms.ToTensor()
+normalize_transform = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+
 
 def create_sem_dict():
     sem_dict = {}
@@ -195,58 +203,36 @@ def coco_ss_iterator(start_value, skip_value, batch_size, val):
         s_utils.showSegmentationImage(seg_array, im_array)
         yield {"image": im_array, "ss_mask": seg_array}
 
-def random_horizontal_flip(im, sem_mask):
-    rand_num = random.random()
-    if rand_num > 0.5:
-        im = np.flilr(im)
-        sem_mask = np.fliplr(sem_mask)
-    return im, sem_mask
-
-def random_vertical_flip(im, sem_mask):
-    rand_num = random.random()
-    if rand_num > 0.5:
-        im = np.flipud(im)
-        sem_mask = np.flipud(sem_mask)
-    return im, sem_mask
-
-def random_color_jitter(im, sem_mask):
-    rand_num = random.random()
-    if rand_num < 0.3:
-        rand_channel = random.randint(0, 3)
-        jitter_val = np.random.randint(low=0, high=10, size=(im.shape[0], im.shape[1]))
-        im[:, :, rand_channel] += jitter_val
-        im = np.clip(im, 0, 255)
-    return im, sem_mask
-
-def random_crop_and_resize(im, sem_mask):
-    rand_num = random.random()
-    if rand_num < 0.2:
-        im_h = im.shape[0]
-        im_w = im.shape[1]
-        crop_size_h = 224
-        crop_size_w = 224
-        x_min = random.randint(0, im_w-(crop_size_w+1))
-        x_max = x_min + crop_size_w
-        y_min = random.randint(0, im_h-(crop_size_h+1))
-        y_max = y_min + crop_size_h
-        im = im[y_min:y_max+1, x_min:x_max+1, :]
-        sem_mask = sem_mask[y_min:y_max+1, x_min:x_max+1]
-        im = np.asarray(Image.fromarray(im).resize((im_w, im_h)))
-        sem_mask = np.asarray(Image.fromarray(sem_mask).resize((im_w, im_h), resample=PIL.Image.NEAREST))
-    return im, sem_mask
+class COCO_iterable_dataset(torch.utils.data.IterableDataset):
+    def __init__(self, batch_size=8, val=False):
+        super(COCO_iterable_dataset).__init__()
+        self.batch_size = batch_size
+        self.val = val
+    def __iter__(self):
+        worker_info = torch.utils.data.get_worker_info()
+        if worker_info is None:
+            start_value = 0
+            skip_value = 0
+        else:
+            start_value = worker_info.id * self.batch_size
+            skip_value = (worker_info.num_workers - 1) * self.batch_size
+        return iter(coco_ss_iterator(start_value, skip_value, self.batch_size, self.val))
 
 
-example_im_path = "F:/Datasets/MS_COCO/train2017/000000000113.jpg"
-im = np.asarray(Image.open(example_im_path))
-seg = np.asarray(Image.open(example_im_path[0:-4]+"_seg.png"))
-s_utils.showSegmentationImage(seg, im)
-im, seg = random_crop_and_resize(im, seg)
-s_utils.showSegmentationImage(seg, im)
+def my_collate(batch):
+    ims = []
+    ss_masks = []
+    for batch_dict in batch:
+        im = batch_dict["image"]
+        ss_mask = batch_dict["ss_mask"]
+        im = transform_to_tensor(im)
+        im = normalize_transform(im)
 
 
-"""
-def collate_func(batch):
-    images = []
-    sem_masks = []
-    for batch_elem in batch:
-"""
+
+
+def get_mscoco_stuff_train_it(batch_size, num_workers, pin_memory):
+    it = COCO_iterable_dataset(batch_size, val=True)
+    dl = torch.utils.data.DataLoader(it, batch_size=batch_size, num_workers=num_workers, pin_memory=pin_memory, collate_fn=my_collate)
+    return dl
+
