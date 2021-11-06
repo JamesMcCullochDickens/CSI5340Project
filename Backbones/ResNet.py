@@ -345,10 +345,10 @@ def remove_classification(model):
 class DeepLabV3PlusBackbone(torch.nn.Module):
     def __init__(self, backbone):
         super(DeepLabV3PlusBackbone, self).__init__()
-        self.backbone_layers = list(backbone.children())
+        self.backbone_layers = torch.nn.Sequential(*backbone.children())
     def forward(self, im):
         features = {}
-        for layer_index, layer in enumerate(self.backbone_layers):
+        for layer_index, layer in enumerate(self.backbone_layers.children()):
             im = layer(im)
             if layer_index == 4:
                 features["low_level"] = im

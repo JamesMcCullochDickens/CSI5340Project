@@ -1,6 +1,7 @@
 import numpy as np
 import random
 from PIL import Image
+import torchvision.transforms.functional as F
 
 def random_horizontal_flip(im, sem_mask):
     rand_num = random.random()
@@ -41,3 +42,27 @@ def random_crop_and_resize(im, sem_mask):
         im = np.asarray(Image.fromarray(im).resize((im_w, im_h)))
         sem_mask = np.asarray(Image.fromarray(sem_mask).resize((im_w, im_h), resample=PIL.Image.NEAREST))
     return im, sem_mask
+
+class multi_input_hflip(object):
+    def __init__(self, threshold):
+        self.threshold = threshold
+        pass
+    def __call__(self, ims):
+        im1, im2 = ims
+        random_val = random.random()
+        if random_val > self.threshold:
+            im1 = F.hflip(im1)
+            im2 = F.hflip(im2)
+        return im1, im2
+
+class multi_input_hflip(object):
+    def __init__(self, threshold):
+        self.threshold = threshold
+        pass
+    def __call__(self, ims):
+        im1, im2 = ims
+        random_val = random.random()
+        if random_val > self.threshold:
+            im1 = F.hflip(im1)
+            im2 = F.hflip(im2)
+        return im1, im2

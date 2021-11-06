@@ -12,7 +12,16 @@ import GenericDataloader as g_dl
 import random
 import torch
 from torchvision import transforms
+import DataAug_Utils as d_utils
+from Models import DeepLabV3Plus as dlv3
+import OptimizerUtils as opt_utils
+from pathlib import Path
+import Training.SS_Training as ss_train
+import torch.nn.functional as F
+import time
 
+
+# paths
 outer_path = pg.get_fp("MS_COCO")
 train_2017_fp = os.path.join(outer_path, "train2017")
 val_2017_fp = os.path.join(outer_path, "val2017")
@@ -25,6 +34,12 @@ ps_train_annotations_fp = "panoptic_train2017.json"
 ps_val_annotations_fp = "panoptic_val2017.json"
 ps_png_train_fp = "panoptic_train2017"
 ps_png_val_fp = "panoptic_val2017"
+saved_models_path = os.path.join(Path(os.getcwd()).parent, "Models/Trained_Models")
+num_train_ss_imgs = 134870 # after filtering out the odd gray-scale image that for some reason is included
+num_val_ss_imgs = 5954
+
+
+# coco stuff class info
 original_coco_classes = OriginalCocoClasses.class_dict
 exclude_things = [12, 26, 29, 30, 45, 66, 68, 69, 71, 83, 91]
 stuff_start_index = 92
@@ -33,10 +48,10 @@ stuff_range = ["ceiling", "floor", "wall", "window"] # classes that we will merg
 total_num_classes = 182
 
 # transforms
-
 transform_to_tensor = transforms.ToTensor()
 normalize_transform = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-
+hflip_transform = d_utils.multi_input_hflip(threshold=0.4)
+resize_tuple = (800, 800)
 
 def create_sem_dict():
     sem_dict = {}
@@ -195,16 +210,32 @@ def coco_ss_iterator(start_value, skip_value, batch_size, val):
         images_path = val_2017_fp
     image_names = list(filter(filterSeg, os.listdir(images_path)))
     for index, image_name in enumerate(image_names):
-        if not g_dl.skipFunction(index, start_value, batch_size, skip_value):
+        if skip_value != 0: # there is more than one worker
+            if not g_dl.skipFunction(index, start_value, batch_size, skip_value):
+                continue
+
+        # not all images in train or val have a seg mask
+        seg_path = os.path.join(images_path, image_name[0:-4] + "_seg.png")
+        if not os.path.isfile(seg_path):
             continue
-        im_array = np.asarray(Image.open(os.path.join(images_path, image_name)), dtype=np.uint8)
-        seg_array = np.asarray(Image.open(os.path.join(images_path, image_name[0:-4]+"_seg.png")), dtype=np.uint8)
+
+        im = Image.open(os.path.join(images_path, image_name))
+        #im = im.resize((800, 800), resample=Image.BILINEAR)
+        im = np.asarray(im, dtype=np.uint8)
+        if len(im.shape) == 2: # ignore the grey-scale images
+            continue
+
+        ss_mask = Image.open(os.path.join(images_path, image_name[0:-4]+"_seg.png"))
+        #ss_mask = ss_mask.resize((800, 800), resample=Image.NEAREST)
+        ss_mask = np.asarray(ss_mask, dtype=np.uint8)
+
         # sanity check code
-        s_utils.showSegmentationImage(seg_array, im_array)
-        yield {"image": im_array, "ss_mask": seg_array}
+        #s_utils.showSegmentationImage(ss_mask, im)
+
+        yield {"image": im, "ss_mask": ss_mask}
 
 class COCO_iterable_dataset(torch.utils.data.IterableDataset):
-    def __init__(self, batch_size=8, val=False):
+    def __init__(self, batch_size, val):
         super(COCO_iterable_dataset).__init__()
         self.batch_size = batch_size
         self.val = val
@@ -226,13 +257,57 @@ def my_collate(batch):
         im = batch_dict["image"]
         ss_mask = batch_dict["ss_mask"]
         im = transform_to_tensor(im)
-        im = normalize_transform(im)
+        im = torch.unsqueeze(normalize_transform(im), 0)
+        ss = torch.unsqueeze(torch.tensor(ss_mask), 0)
+        im, ss = hflip_transform((im, ss))
+        ims.append(im)
+        ss_masks.append(ss)
+    ims = torch.cat([im for im in ims], dim=0)
+    ims = F.interpolate(ims, size=resize_tuple, mode="bilinear", align_corners=False)
+    ss_masks = torch.cat([ss_mask for ss_mask in ss_masks], dim=0)
+    ss_masks = F.interpolate(torch.unsqueeze(ss_masks, 1), size=resize_tuple, mode="nearest")
+    ss_masks = torch.squeeze(ss_masks, dim=1).type(torch.LongTensor)
+    return ims, ss_masks
 
 
-
-
-def get_mscoco_stuff_train_it(batch_size, num_workers, pin_memory):
-    it = COCO_iterable_dataset(batch_size, val=True)
-    dl = torch.utils.data.DataLoader(it, batch_size=batch_size, num_workers=num_workers, pin_memory=pin_memory, collate_fn=my_collate)
+def get_mscoco_stuff_train_it(batch_size=12, num_workers=0, pin_memory=True):
+    if num_workers == 0:
+        persistent_workers = False
+    else:
+        persistent_workers = True
+    it = COCO_iterable_dataset(batch_size, val=False)
+    dl = torch.utils.data.DataLoader(it, batch_size=batch_size, num_workers=num_workers, pin_memory=pin_memory, collate_fn=my_collate, persistent_workers=persistent_workers, drop_last=True)
     return dl
 
+def get_mscoco_stuff_val_it(batch_size=12, num_workers=0, pin_memory=True):
+    if num_workers == 0:
+        persistent_workers = False
+    else:
+        persistent_workers = True
+    it = COCO_iterable_dataset(batch_size, val=True)
+    dl = torch.utils.data.DataLoader(it, batch_size=batch_size, num_workers=num_workers, pin_memory=pin_memory, collate_fn=my_collate, persistent_workers=persistent_workers, drop_last=True)
+    return dl
+
+"""
+if __name__ == "__main__":
+    dl = get_mscoco_stuff_val_it(num_workers=6, batch_size=1)
+    t1 = time.time()
+    for index, t in enumerate(dl):
+        debug = "debug"
+    t2 = time.time()
+    print("Going through " + str(index) + " many images took " + str(t2-t1) + "seconds")
+    debug = "debug"
+"""
+
+
+if __name__ == "__main__":
+    num_epochs = 15
+    batch_size = 4
+    num_workers = 6
+    model_name = "dlv3+_ResNet101_COCO_train"
+    save_path = os.path.join(saved_models_path, model_name)
+    dataloader = get_mscoco_stuff_train_it(batch_size=batch_size, num_workers=num_workers)
+    model = dlv3.DeepLabHeadV3Plus(num_classes=97)
+    optimizer = opt_utils.getMaskRCNNOptimizer(model, learning_rate=0.003)
+    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.8, verbose=True)
+    ss_train.train_rgb_ss_model(model, optimizer, lr_scheduler, num_epochs, dataloader, save_path)

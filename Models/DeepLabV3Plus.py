@@ -5,10 +5,13 @@ import Backbones.ResNet as ResNet
 import ExtraLosses.Losses as losses
 
 class DeepLabHeadV3Plus(nn.Module):
-    def __init__(self, backbone, in_channels, low_level_channels, num_classes, aspp_dilate=[12, 24, 36], loss="ce"):
+    def __init__(self, backbone=None, in_channels=2048, low_level_channels=256, num_classes=37, aspp_dilate=[12, 24, 36], loss="ce"):
         super(DeepLabHeadV3Plus, self).__init__()
 
-        self.backbone = backbone
+        if backbone is None:
+            rn_101 = ResNet.remove_head(ResNet.resnet101(pretrained=True, dilation_vals=[False, True, True]))
+            self.backbone = ResNet.DeepLabV3PlusBackbone(rn_101)
+
         self.project = nn.Sequential(
             nn.Conv2d(low_level_channels, 48, 1, bias=False),
             nn.BatchNorm2d(48),
@@ -46,6 +49,7 @@ class DeepLabHeadV3Plus(nn.Module):
             loss = self.loss(output, gt)
         else:
             loss = None
+            output = torch.argmax(output, dim=1)
         return output, loss
 
     def _init_weight(self):
@@ -183,10 +187,11 @@ def convert_to_separable_conv(module):
 
 
 # sample DeepLabV3+
-rn_101 = ResNet.remove_head(ResNet.resnet101(pretrained=True, dilation_vals=[False, True, True])).cuda() # Stride 8 ResNet101
-backbone = ResNet.DeepLabV3PlusBackbone(rn_101)
-dlV3Plus = DeepLabHeadV3Plus(backbone, in_channels=2048, low_level_channels=256, num_classes=37, loss="focal_loss").cuda()
-im = torch.rand(3, 3, 600, 600).cuda()
-gt = torch.randint(0, 36, (3, 600, 600)).cuda() # min 0
-output, loss = dlV3Plus(im, gt)
-debug = "debug"
+"""
+dlV3Plus = DeepLabHeadV3Plus(backbone=None, in_channels=2048, low_level_channels=256, num_classes=97, loss="focal_loss").cuda()
+im = torch.rand(4, 3, 800, 800).cuda()
+gt = torch.randint(0, 36, (4, 800, 800)).cuda() # min 0
+with torch.cuda.amp.autocast():
+    output, loss = dlV3Plus(im, gt)
+    debug = "debug"
+"""
