@@ -80,7 +80,7 @@ if __name__ == "__main__":
     num_classes = 97
     model_name = "dlv3+_ResNet101_COCO_train"
     save_path = os.path.join(saved_models_path, model_name)
-    dataloader = ms_coco_dl.get_mscoco_stuff_train_it(batch_size=8, num_workers=0)
+    dataloader = ms_coco_dl.get_mscoco_stuff_train_it(batch_size=6, num_workers=8)
     model = dlv3.DeepLabHeadV3Plus(num_classes=num_classes)
     optimizer = opt_utils.getMaskRCNNOptimizer(model, learning_rate=0.003)
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.8, verbose=True)
