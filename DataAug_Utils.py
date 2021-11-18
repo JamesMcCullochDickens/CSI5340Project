@@ -251,3 +251,27 @@ def npy_grayscale2RG(im):
     im = transform(im)
     im = np.asarray(im)
     return im
+
+class multi_input_hflip(object):
+    def __init__(self, threshold):
+        self.threshold = threshold
+        pass
+    def __call__(self, ims):
+        im1, im2 = ims
+        random_val = random.random()
+        if random_val > self.threshold:
+            im1 = F.hflip(im1)
+            im2 = F.hflip(im2)
+        return im1, im2
+
+class multi_input_vflip(object):
+    def __init__(self, threshold):
+        self.threshold = threshold
+        pass
+    def __call__(self, ims):
+        im1, im2 = ims
+        random_val = random.random()
+        if random_val > self.threshold:
+            im1 = F.vflip(im1)
+            im2 = F.vflip(im2)
+        return im1, im2

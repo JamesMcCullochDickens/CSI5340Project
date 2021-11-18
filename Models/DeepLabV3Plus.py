@@ -33,7 +33,7 @@ class DeepLabHeadV3Plus(nn.Module):
             self.loss = losses.FocalLoss()
             pass
 
-    def forward(self, ims, gt=None):
+    def forward(self, ims, gt=None, hw_tuple=None):
         im_height = ims.shape[2]
         im_width = ims.shape[3]
         feature = self.backbone(ims)
@@ -42,10 +42,14 @@ class DeepLabHeadV3Plus(nn.Module):
         output_feature = F.interpolate(output_feature, size=low_level_feature.shape[2:], mode='bilinear',
                                        align_corners=False)
         output = self.classifier(torch.cat([low_level_feature, output_feature], dim=1))
-        output = F.interpolate(output, (im_height, im_width), mode='bilinear',
-                                       align_corners=False)
+        if hw_tuple is None:
+            output = F.interpolate(output, (im_height, im_width), mode='bilinear',
+                                           align_corners=False)
+        else:
+            output = F.interpolate(output, hw_tuple, mode='bilinear',
+                                   align_corners=False)
 
-        if self.train:
+        if self.training:
             loss = self.loss(output, gt)
         else:
             loss = None
@@ -184,14 +188,3 @@ def convert_to_separable_conv(module):
     for name, child in module.named_children():
         new_module.add_module(name, convert_to_separable_conv(child))
     return new_module
-
-
-# sample DeepLabV3+
-"""
-dlV3Plus = DeepLabHeadV3Plus(backbone=None, in_channels=2048, low_level_channels=256, num_classes=97, loss="focal_loss").cuda()
-im = torch.rand(4, 3, 800, 800).cuda()
-gt = torch.randint(0, 36, (4, 800, 800)).cuda() # min 0
-with torch.cuda.amp.autocast():
-    output, loss = dlV3Plus(im, gt)
-    debug = "debug"
-"""
