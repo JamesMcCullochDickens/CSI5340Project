@@ -1,17 +1,17 @@
-import PIL.Image
-#import pycocotools.coco as pycoco
 import OriginalCocoClasses
 import PathGetter as pg
 import os
 from PIL import Image
 import numpy as np
-import ShowImageUtils as s_utils
 import json
 import GenericDataloader as g_dl
 import torch
 from torchvision import transforms
 import DataAug_Utils as d_utils
 from pathlib import Path
+import COCOStuffDict as cs_dict
+import torchvision.transforms.functional as TF
+from functools import partial
 
 # paths
 outer_path = pg.get_fp("MS_COCO")
@@ -27,12 +27,13 @@ ps_val_annotations_fp = "panoptic_val2017.json"
 ps_png_train_fp = "panoptic_train2017"
 ps_png_val_fp = "panoptic_val2017"
 saved_models_path = os.path.join(Path(os.getcwd()).parent, "Models/Trained_Models")
-num_train_ss_imgs = 134870 # after filtering out the odd gray-scale image that for some reason is included
-num_val_ss_imgs = 5954
+num_train_ss_imgs = 118287 # after filtering out the odd gray-scale image that for some reason is included
+num_val_ss_imgs = 5000
 
 
 # coco stuff class info
 original_coco_classes = OriginalCocoClasses.class_dict
+coco_classes = cs_dict.coco_stuff_dict
 exclude_things = [12, 26, 29, 30, 45, 66, 68, 69, 71, 83, 91]
 stuff_start_index = 92
 include_stuff = [93, 101, 102, 103, 105, 108, 109, 110, 114, 115, 116, 117, 118, 123, 130, 133, 152, 156, 165, 168, 171, 172, 173, 174, 175, 176, 177, 180, 181]
@@ -40,10 +41,15 @@ stuff_range = ["ceiling", "floor", "wall", "window"] # classes that we will merg
 total_num_classes = 182
 
 # transforms
+crop_tuple = (500, 500)
 transform_to_tensor = transforms.ToTensor()
 normalize_transform = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+image_mean_mean = 0.449
+image_std_mean = 0.226
+random_crop_transform = transforms.RandomCrop((513, 513))
 hflip_transform = d_utils.multi_input_hflip(threshold=0.4)
 resize_tuple = (800, 600)
+
 
 def create_sem_dict():
     sem_dict = {}
@@ -198,12 +204,14 @@ def filterSeg(path):
     else:
         return True
 
-def coco_ss_iterator(start_value, skip_value, batch_size, val, debug=False):
+def coco_ss_iterator(start_value, skip_value, batch_size, val, permutation, debug=False):
     if not val:
         images_path = train_2017_fp
     else:
         images_path = val_2017_fp
     image_names = list(filter(filterSeg, os.listdir(images_path)))
+    if permutation is not None:
+        image_names = [image_names[i] for i in permutation]
     for index, image_name in enumerate(image_names):
         if skip_value != 0: # there is more than one worker
             if not g_dl.skipFunction(index, start_value, batch_size, skip_value):
@@ -214,7 +222,7 @@ def coco_ss_iterator(start_value, skip_value, batch_size, val, debug=False):
         if not os.path.isfile(seg_path):
             continue
 
-        if debug and index == 50: # DEBUG (set debug false by default obv)
+        if debug and index >= 24: # DEBUG (set debug false by default obv)
             return
 
         im = Image.open(os.path.join(images_path, image_name))
@@ -224,12 +232,18 @@ def coco_ss_iterator(start_value, skip_value, batch_size, val, debug=False):
             continue
 
         ss_mask = Image.open(os.path.join(images_path, image_name[0:-4]+"_seg.png"))
-        original_ss_mask = np.asarray(ss_mask)
+        original_ss_mask = np.asarray(ss_mask, dtype=np.uint8)
         ss_mask = ss_mask.resize((600, 800), resample=Image.NEAREST)
         ss_mask = np.asarray(ss_mask, dtype=np.uint8)
 
+        """
         # sanity check code to visualize mask
-        #s_utils.showSegmentationImage(ss_mask, im)
+        cats = np.unique(ss_mask)
+        for cat in cats:
+            print(coco_classes[cat])
+        s_utils.showSegmentationImage(ss_mask, im)
+        """
+
 
         yield {"image": im, "resized_ss_mask": ss_mask, "original_ss_mask": original_ss_mask}
 
@@ -238,7 +252,7 @@ class COCO_iterable_dataset(torch.utils.data.IterableDataset):
         super(COCO_iterable_dataset).__init__()
         self.batch_size = batch_size
         self.val = val
-        self.permutation=permutation
+        self.permutation = permutation
     def __iter__(self):
         worker_info = torch.utils.data.get_worker_info()
         if worker_info is None:
@@ -247,56 +261,89 @@ class COCO_iterable_dataset(torch.utils.data.IterableDataset):
         else:
             start_value = worker_info.id * self.batch_size
             skip_value = (worker_info.num_workers - 1) * self.batch_size
-        return iter(coco_ss_iterator(start_value, skip_value, self.batch_size, self.val))
+        return iter(coco_ss_iterator(start_value, skip_value, self.batch_size, self.val, self.permutation))
 
 
-def my_collate(batch):
+def my_collate(batch, val):
     ims = []
     ss_masks = []
     original_ss_masks = []
     for batch_dict in batch:
-        im = batch_dict["image"]
-        ss_mask = batch_dict["resized_ss_mask"]
-        original_ss_masks.append(torch.tensor(batch_dict["original_ss_mask"]))
-        im = transform_to_tensor(im)
+        im = transform_to_tensor(batch_dict["image"])
+        ss_mask = torch.tensor(batch_dict["resized_ss_mask"])
+        if not val: # don't crop during testing
+            i, j, h, w = random_crop_transform.get_params(im, crop_tuple)
+            im = TF.crop(im, i, j, h, w)
+            ss_mask = TF.crop(ss_mask, i, j, h, w)
         im = torch.unsqueeze(normalize_transform(im), 0)
-        ss = torch.unsqueeze(torch.tensor(ss_mask), 0)
-        im, ss = hflip_transform((im, ss))
+        ss = torch.unsqueeze(ss_mask, 0)
         ims.append(im)
         ss_masks.append(ss)
+        original_ss_masks.append(torch.tensor(batch_dict["original_ss_mask"]))
+    ims = torch.cat([im for im in ims], dim=0)
+    ss_masks = torch.cat([ss_mask for ss_mask in ss_masks], dim=0)
+    ss_masks = torch.squeeze(ss_masks, dim=1).type(torch.LongTensor)
+    return ims, ss_masks, original_ss_masks
+
+def my_collate_grayscale(batch, val):
+    ims = []
+    ss_masks = []
+    original_ss_masks = []
+    for batch_dict in batch:
+        im = transform_to_tensor(batch_dict["image"])
+        ss_mask = torch.tensor(batch_dict["resized_ss_mask"])
+        if not val: # don't crop during testing
+            i, j, h, w = random_crop_transform.get_params(im, crop_tuple)
+            im = TF.crop(im, i, j, h, w)
+            ss_mask = TF.crop(ss_mask, i, j, h, w)
+        im = torch.unsqueeze(normalize_transform(im), 0)
+        im = torch.unsqueeze(torch.mean(im, dim=1), 1)
+        ss = torch.unsqueeze(ss_mask, 0)
+        ims.append(im)
+        ss_masks.append(ss)
+        original_ss_masks.append(torch.tensor(batch_dict["original_ss_mask"]))
     ims = torch.cat([im for im in ims], dim=0)
     ss_masks = torch.cat([ss_mask for ss_mask in ss_masks], dim=0)
     ss_masks = torch.squeeze(ss_masks, dim=1).type(torch.LongTensor)
     return ims, ss_masks, original_ss_masks
 
 
-def get_mscoco_stuff_train_it(batch_size=8, num_workers=8, pin_memory=True):
-    if num_workers == 0:
-        persistent_workers = False
-    else:
-        persistent_workers = True
-    it = COCO_iterable_dataset(batch_size, val=False)
+def get_mscoco_stuff_train_it(batch_size=8, num_workers=8, pin_memory=False):
+    coll = partial(my_collate, val=False)
+    permutation = np.random.permutation(num_train_ss_imgs).tolist()
+    it = COCO_iterable_dataset(batch_size, val=False, permutation=permutation)
     dl = torch.utils.data.DataLoader(it, batch_size=batch_size, num_workers=num_workers, pin_memory=pin_memory,
-                                     collate_fn=my_collate, persistent_workers=persistent_workers, drop_last=True)
+                                     collate_fn=coll, persistent_workers=False, drop_last=True)
     return dl
 
-def get_mscoco_stuff_val_it(batch_size=12, num_workers=0, pin_memory=True):
-    if num_workers == 0:
-        persistent_workers = False
-    else:
-        persistent_workers = True
-    it = COCO_iterable_dataset(batch_size, val=True)
+def get_mscoco_stuff_val_it(batch_size=12, num_workers=8, pin_memory=False):
+    coll = partial(my_collate, val=True)
+    permutation = None
+    it = COCO_iterable_dataset(batch_size, val=True, permutation=permutation)
     dl = torch.utils.data.DataLoader(it, batch_size=batch_size, num_workers=num_workers, pin_memory=pin_memory,
-                                     collate_fn=my_collate, persistent_workers=persistent_workers, drop_last=True)
+                                     collate_fn=coll, persistent_workers=False, drop_last=True)
     return dl
 
+
+def get_mscoco_stuff_grayscale_train_it(batch_size=8, num_workers=8, pin_memory=False):
+    coll = partial(my_collate_grayscale, val=False)
+    permutation = np.random.permutation(num_train_ss_imgs).tolist()
+    it = COCO_iterable_dataset(batch_size, val=False, permutation=permutation)
+    dl = torch.utils.data.DataLoader(it, batch_size=batch_size, num_workers=num_workers, pin_memory=pin_memory,
+                                     collate_fn=coll, persistent_workers=False, drop_last=True)
+    return dl
+
+def get_mscoco_stuff_grayscale_val_it(batch_size=12, num_workers=8, pin_memory=False):
+    coll = partial(my_collate_grayscale, val=True)
+    permutation = None
+    it = COCO_iterable_dataset(batch_size, val=True, permutation=permutation)
+    dl = torch.utils.data.DataLoader(it, batch_size=batch_size, num_workers=num_workers, pin_memory=pin_memory,
+                                     collate_fn=coll, persistent_workers=False, drop_last=True)
+    return dl
 
 """
 if __name__ == "__main__":
-    dl = get_mscoco_stuff_train_it(num_workers=8, batch_size=8)
-    t1 = time.time()
+    dl = get_mscoco_stuff_grayscale_train_it(num_workers=0, batch_size=1)
     for index, t in enumerate(dl):
         debug = "debug"
-    t2 = time.time()
-    print("Going through " + str(index) + " many images took " + str(t2-t1) + "seconds")
 """

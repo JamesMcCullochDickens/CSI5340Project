@@ -84,6 +84,7 @@ class BYOL(nn.Module):
         overall_loss = loss1+loss2
         return overall_loss.mean()
 
+
 """
 # debugging BYOL
 rn_50 = ResNet.remove_classification(ResNet.resnet50(pretrained=True, dilation_vals=[False, True, True]))

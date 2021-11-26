@@ -1,456 +1,484 @@
 {
     "person": {
-        "count": 1547425,
-        "correct": 7394,
-        "accuracy": 0.0047782606588364545
+        "count": 116823328,
+        "correct": 110607385,
+        "accuracy": 0.946791936966562
     },
     "bicycle": {
-        "count": 1776,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 2291493,
+        "correct": 1852896,
+        "accuracy": 0.8085977133685331
     },
     "car": {
-        "count": 39099,
-        "correct": 52,
-        "accuracy": 0.0013299572879101767
+        "count": 7659288,
+        "correct": 5929582,
+        "accuracy": 0.7741688261363198
     },
     "motorcycle": {
-        "count": 0,
-        "correct": 0
+        "count": 7137182,
+        "correct": 6467720,
+        "accuracy": 0.9062007946553696
     },
     "airplane": {
-        "count": 2033,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 2519386,
+        "correct": 2334381,
+        "accuracy": 0.9265674255552742
     },
     "bus": {
-        "count": 455099,
-        "correct": 60,
-        "accuracy": 0.00013183944592275526
+        "count": 11674442,
+        "correct": 10419486,
+        "accuracy": 0.8925039843446051
     },
     "train": {
-        "count": 24033,
-        "correct": 66,
-        "accuracy": 0.0027462239420796403
+        "count": 11151097,
+        "correct": 10047451,
+        "accuracy": 0.9010280333854149
     },
     "truck": {
-        "count": 668,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 7279313,
+        "correct": 4902311,
+        "accuracy": 0.6734579210977739
     },
     "boat": {
-        "count": 7098,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 2764487,
+        "correct": 2309371,
+        "accuracy": 0.8353705407187663
     },
     "traffic light": {
-        "count": 438,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 837282,
+        "correct": 759557,
+        "accuracy": 0.907169866305498
     },
     "fire hydrant": {
-        "count": 0,
-        "correct": 0
+        "count": 1875217,
+        "correct": 1815403,
+        "accuracy": 0.9681028915586836
     },
     "stop sign": {
-        "count": 16767,
-        "correct": 9,
-        "accuracy": 0.0005367686527106817
+        "count": 1527520,
+        "correct": 1508437,
+        "accuracy": 0.9875072012150413
     },
     "parking meter": {
-        "count": 0,
-        "correct": 0
+        "count": 771925,
+        "correct": 592487,
+        "accuracy": 0.7675447744275674
     },
     "bench": {
-        "count": 0,
-        "correct": 0
+        "count": 4843705,
+        "correct": 3286148,
+        "accuracy": 0.6784368577359686
     },
     "bird": {
-        "count": 1173,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 1858922,
+        "correct": 1630686,
+        "accuracy": 0.8772213142886038
     },
     "cat": {
-        "count": 224265,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 8679258,
+        "correct": 7644137,
+        "accuracy": 0.8807362334429971
     },
     "dog": {
-        "count": 0,
-        "correct": 0
+        "count": 7049704,
+        "correct": 5788037,
+        "accuracy": 0.8210326277528815
     },
     "horse": {
-        "count": 0,
-        "correct": 0
+        "count": 3867057,
+        "correct": 3516873,
+        "accuracy": 0.909444313854179
     },
     "sheep": {
-        "count": 0,
-        "correct": 0
+        "count": 3696521,
+        "correct": 3534885,
+        "accuracy": 0.956273479847673
     },
     "cow": {
-        "count": 0,
-        "correct": 0
+        "count": 4053143,
+        "correct": 3491573,
+        "accuracy": 0.8614482637301472
     },
     "elephant": {
-        "count": 0,
-        "correct": 0
+        "count": 7257913,
+        "correct": 7035514,
+        "accuracy": 0.9693577203253883
     },
     "bear": {
-        "count": 275827,
-        "correct": 16,
-        "accuracy": 5.800737418744358e-05
+        "count": 3470403,
+        "correct": 3132070,
+        "accuracy": 0.9025090169643122
     },
     "zebra": {
-        "count": 209228,
-        "correct": 3024,
-        "accuracy": 0.014453132467929723
+        "count": 5431978,
+        "correct": 5307020,
+        "accuracy": 0.9769958567578882
     },
     "giraffe": {
-        "count": 0,
-        "correct": 0
+        "count": 3729614,
+        "correct": 3669836,
+        "accuracy": 0.983972067886918
     },
     "backpack": {
-        "count": 1839,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 816700,
+        "correct": 258332,
+        "accuracy": 0.3163119872658259
     },
     "umbrella": {
-        "count": 0,
-        "correct": 0
+        "count": 4318877,
+        "correct": 3478576,
+        "accuracy": 0.8054353018157266
     },
     "handbag": {
-        "count": 18579,
-        "correct": 1423,
-        "accuracy": 0.07659185101458636
+        "count": 1126662,
+        "correct": 197285,
+        "accuracy": 0.17510575487590777
     },
     "tie": {
-        "count": 27349,
-        "correct": 757,
-        "accuracy": 0.027679257011225273
+        "count": 707348,
+        "correct": 440187,
+        "accuracy": 0.6223061350283029
     },
     "suitcase": {
-        "count": 0,
-        "correct": 0
+        "count": 3783301,
+        "correct": 3047230,
+        "accuracy": 0.8054421258049518
     },
     "frisbee": {
-        "count": 0,
-        "correct": 0
+        "count": 274224,
+        "correct": 223135,
+        "accuracy": 0.813696102456386
     },
     "skis": {
-        "count": 5092,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 292037,
+        "correct": 200275,
+        "accuracy": 0.685786390080709
     },
     "snowboard": {
-        "count": 0,
-        "correct": 0
+        "count": 206704,
+        "correct": 130140,
+        "accuracy": 0.6295959439585107
     },
     "sports ball": {
-        "count": 226,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 155767,
+        "correct": 89496,
+        "accuracy": 0.5745504503521285
     },
     "kite": {
-        "count": 0,
-        "correct": 0
+        "count": 798621,
+        "correct": 583653,
+        "accuracy": 0.7308260113370423
     },
     "baseball bat": {
-        "count": 462,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 189641,
+        "correct": 82662,
+        "accuracy": 0.43588675444655955
     },
     "baseball glove": {
-        "count": 1331,
-        "correct": 4,
-        "accuracy": 0.003005259203606311
+        "count": 288127,
+        "correct": 183187,
+        "accuracy": 0.6357856084296161
     },
     "skateboard": {
-        "count": 11681,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 884926,
+        "correct": 502431,
+        "accuracy": 0.5677661182968972
     },
     "surfboard": {
-        "count": 9002,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 1484321,
+        "correct": 1315400,
+        "accuracy": 0.8861964494203073
     },
     "tennis racket": {
-        "count": 4273,
-        "correct": 55,
-        "accuracy": 0.012871518839223028
+        "count": 1015649,
+        "correct": 660292,
+        "accuracy": 0.6501182987429712
     },
     "bottle": {
-        "count": 3650,
-        "correct": 1,
-        "accuracy": 0.000273972602739726
+        "count": 2207563,
+        "correct": 1358296,
+        "accuracy": 0.6152920664098828
     },
     "wine glass": {
-        "count": 7672,
-        "correct": 23,
-        "accuracy": 0.002997914494264859
+        "count": 700115,
+        "correct": 333011,
+        "accuracy": 0.4756518571948894
     },
     "cup": {
-        "count": 14239,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 2485348,
+        "correct": 1246349,
+        "accuracy": 0.5014786661666696
     },
     "fork": {
-        "count": 0,
-        "correct": 0
+        "count": 408390,
+        "correct": 73619,
+        "accuracy": 0.18026641200812948
     },
     "knife": {
-        "count": 3,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 298551,
+        "correct": 53769,
+        "accuracy": 0.18009988243214728
     },
     "spoon": {
-        "count": 0,
-        "correct": 0
+        "count": 298934,
+        "correct": 21442,
+        "accuracy": 0.0717282075642115
     },
     "bowl": {
-        "count": 415927,
-        "correct": 171,
-        "accuracy": 0.0004111298376878635
+        "count": 8422408,
+        "correct": 4186370,
+        "accuracy": 0.4970514370712034
     },
     "banana": {
-        "count": 178225,
-        "correct": 39,
-        "accuracy": 0.00021882451956796185
+        "count": 3207310,
+        "correct": 2488542,
+        "accuracy": 0.7758969354381086
     },
     "apple": {
-        "count": 39935,
-        "correct": 2,
-        "accuracy": 5.008138224614999e-05
+        "count": 1463635,
+        "correct": 1052526,
+        "accuracy": 0.7191178128426827
     },
     "sandwich": {
-        "count": 61496,
-        "correct": 44,
-        "accuracy": 0.0007154936906465461
+        "count": 3210904,
+        "correct": 1493762,
+        "accuracy": 0.46521540351253104
     },
     "orange": {
-        "count": 0,
-        "correct": 0
+        "count": 2499828,
+        "correct": 1601546,
+        "accuracy": 0.6406624775784574
     },
     "broccoli": {
-        "count": 31169,
-        "correct": 49,
-        "accuracy": 0.0015720748179280696
+        "count": 2137171,
+        "correct": 1447499,
+        "accuracy": 0.677296762870168
     },
     "carrot": {
-        "count": 0,
-        "correct": 0
+        "count": 1306483,
+        "correct": 656112,
+        "accuracy": 0.502197120054375
     },
     "hot dog": {
-        "count": 0,
-        "correct": 0
+        "count": 1769846,
+        "correct": 1086553,
+        "accuracy": 0.6139251663704074
     },
     "pizza": {
-        "count": 0,
-        "correct": 0
+        "count": 7766313,
+        "correct": 5491891,
+        "accuracy": 0.7071426299712618
     },
     "donut": {
-        "count": 47415,
-        "correct": 486,
-        "accuracy": 0.01024992091110408
+        "count": 2557487,
+        "correct": 1919873,
+        "accuracy": 0.7506872957712004
     },
     "cake": {
-        "count": 0,
-        "correct": 0
+        "count": 4000116,
+        "correct": 2598455,
+        "accuracy": 0.6495949117475593
     },
     "chair": {
-        "count": 36661,
-        "correct": 2,
-        "accuracy": 5.45538856005019e-05
+        "count": 8833448,
+        "correct": 4787665,
+        "accuracy": 0.5419927756409502
     },
     "couch": {
-        "count": 50975,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 8006279,
+        "correct": 5834053,
+        "accuracy": 0.7286846985971885
     },
     "potted plant": {
-        "count": 9875,
-        "correct": 156,
-        "accuracy": 0.01579746835443038
+        "count": 2378228,
+        "correct": 1534370,
+        "accuracy": 0.6451736334783713
     },
     "bed": {
-        "count": 135683,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 13393509,
+        "correct": 9339258,
+        "accuracy": 0.6972973251445905
     },
     "dining table": {
-        "count": 901869,
-        "correct": 970,
-        "accuracy": 0.0010755442309248904
+        "count": 41025735,
+        "correct": 31596300,
+        "accuracy": 0.7701580483567205
     },
     "toilet": {
-        "count": 36542,
-        "correct": 279,
-        "accuracy": 0.007635050079360736
+        "count": 4670740,
+        "correct": 3916445,
+        "accuracy": 0.8385063180566676
     },
     "tv": {
-        "count": 179283,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 5609183,
+        "correct": 4831732,
+        "accuracy": 0.8613967488669919
     },
     "laptop": {
-        "count": 47714,
-        "correct": 15,
-        "accuracy": 0.0003143731399589219
+        "count": 5637277,
+        "correct": 4680877,
+        "accuracy": 0.8303436215747425
     },
     "mouse": {
-        "count": 664,
-        "correct": 75,
-        "accuracy": 0.11295180722891567
+        "count": 282176,
+        "correct": 190263,
+        "accuracy": 0.6742706679519165
     },
     "remote": {
-        "count": 551,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 620171,
+        "correct": 257028,
+        "accuracy": 0.41444698317077067
     },
     "keyboard": {
-        "count": 52784,
-        "correct": 1,
-        "accuracy": 1.8945134889360412e-05
+        "count": 1834294,
+        "correct": 1163897,
+        "accuracy": 0.6345204203906244
     },
     "cell phone": {
-        "count": 8241,
-        "correct": 3500,
-        "accuracy": 0.42470573959470936
+        "count": 2042983,
+        "correct": 1690441,
+        "accuracy": 0.8274376242974122
     },
     "microwave": {
-        "count": 220,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 982376,
+        "correct": 755893,
+        "accuracy": 0.7694538547358649
     },
     "oven": {
-        "count": 26213,
-        "correct": 2,
-        "accuracy": 7.629802006637928e-05
+        "count": 4927248,
+        "correct": 3222099,
+        "accuracy": 0.6539348131045971
     },
     "toaster": {
-        "count": 0,
-        "correct": 0
+        "count": 152471,
+        "correct": 3163,
+        "accuracy": 0.020744928543788656
     },
     "sink": {
-        "count": 3026,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 2521342,
+        "correct": 1800248,
+        "accuracy": 0.7140038915783737
     },
     "refrigerator": {
-        "count": 54396,
-        "correct": 4973,
-        "accuracy": 0.09142216339436723
+        "count": 5373518,
+        "correct": 4687762,
+        "accuracy": 0.8723823015015489
     },
     "book": {
-        "count": 23135,
-        "correct": 97,
-        "accuracy": 0.004192781499891938
+        "count": 2967587,
+        "correct": 2008115,
+        "accuracy": 0.6766827729060682
     },
     "clock": {
-        "count": 434,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 2032664,
+        "correct": 1622311,
+        "accuracy": 0.7981205944514194
     },
     "vase": {
-        "count": 2656,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 2333891,
+        "correct": 1641421,
+        "accuracy": 0.7032980546220882
     },
     "scissors": {
-        "count": 6029,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 871368,
+        "correct": 595978,
+        "accuracy": 0.6839567209261759
     },
     "teddy bear": {
-        "count": 229637,
-        "correct": 205,
-        "accuracy": 0.0008927132822672305
+        "count": 5217838,
+        "correct": 4575650,
+        "accuracy": 0.8769245039803842
     },
     "hair drier": {
-        "count": 0,
-        "correct": 0
+        "count": 71634,
+        "correct": 0,
+        "accuracy": 0.0
     },
     "toothbrush": {
-        "count": 0,
-        "correct": 0
+        "count": 115122,
+        "correct": 51721,
+        "accuracy": 0.44927120793592884
     },
     "blanket": {
-        "count": 5104,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 1967792,
+        "correct": 54048,
+        "accuracy": 0.027466317578280632
     },
     "carpet": {
-        "count": 61181,
-        "correct": 71,
-        "accuracy": 0.0011604910021084977
+        "count": 4781925,
+        "correct": 3560045,
+        "accuracy": 0.744479472179091
     },
     "ceiling": {
-        "count": 113302,
-        "correct": 6,
-        "accuracy": 5.2955817196519035e-05
+        "count": 12244276,
+        "correct": 8908861,
+        "accuracy": 0.7275939385881207
     },
     "clothes": {
-        "count": 61364,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 5523222,
+        "correct": 631153,
+        "accuracy": 0.11427261116790163
     },
     "cupboard": {
-        "count": 0,
-        "correct": 0
+        "count": 523043,
+        "correct": 206371,
+        "accuracy": 0.3945583823892108
     },
     "curtain": {
-        "count": 0,
-        "correct": 0
+        "count": 6247277,
+        "correct": 4995391,
+        "accuracy": 0.7996109344919394
     },
     "desk-stuff": {
-        "count": 74156,
-        "correct": 250,
-        "accuracy": 0.00337127137386051
+        "count": 5711049,
+        "correct": 2485152,
+        "accuracy": 0.43514807875050626
     },
     "floor": {
-        "count": 373852,
-        "correct": 9122,
-        "accuracy": 0.02440002995837925
+        "count": 28783769,
+        "correct": 21131322,
+        "accuracy": 0.73414020241755
     },
     "furniture-other": {
-        "count": 62707,
-        "correct": 2,
-        "accuracy": 3.1894365860270786e-05
+        "count": 18859989,
+        "correct": 3263118,
+        "accuracy": 0.17301802243893144
     },
     "light": {
-        "count": 3903,
-        "correct": 15,
-        "accuracy": 0.003843197540353574
+        "count": 1671872,
+        "correct": 689558,
+        "accuracy": 0.4124466466332351
     },
     "mirror-stuff": {
-        "count": 101678,
-        "correct": 1384,
-        "accuracy": 0.013611597395700151
+        "count": 4510164,
+        "correct": 1371679,
+        "accuracy": 0.30413062584863876
     },
     "rug": {
-        "count": 40906,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 1712696,
+        "correct": 592235,
+        "accuracy": 0.34579108026176275
     },
     "shelf": {
-        "count": 25395,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 4453346,
+        "correct": 1788836,
+        "accuracy": 0.4016835880257227
     },
     "table": {
-        "count": 209416,
-        "correct": 103,
-        "accuracy": 0.0004918439851778278
+        "count": 16692506,
+        "correct": 4248797,
+        "accuracy": 0.25453320190509443
     },
     "towel": {
-        "count": 0,
-        "correct": 0
+        "count": 1107858,
+        "correct": 256113,
+        "accuracy": 0.23117854454271214
     },
     "wall": {
-        "count": 1148567,
-        "correct": 0,
-        "accuracy": 0.0
+        "count": 132562720,
+        "correct": 116329691,
+        "accuracy": 0.8775445389171255
     },
-    "overall_accuracy": 0.004490510462826337,
-    "average_accuracy": 0.012746650109388564
+    "overall_accuracy": 0.7704120744695359,
+    "average_accuracy": 0.6471995087040323
 }

@@ -1,580 +1,580 @@
 {
     "person": {
-        "intersection": 6824,
-        "union": 1579821,
-        "total_count": 1547425,
-        "mean_IU": 0.004
+        "intersection": 110607385,
+        "union": 131286312,
+        "total_count": 116823328,
+        "mean_IU": 0.842
     },
     "bicycle": {
-        "intersection": 0,
-        "union": 29680,
-        "total_count": 1776,
-        "mean_IU": 0.0
+        "intersection": 1852896,
+        "union": 2709342,
+        "total_count": 2291493,
+        "mean_IU": 0.684
     },
     "car": {
-        "intersection": 32,
-        "union": 46666,
-        "total_count": 39099,
-        "mean_IU": 0.001
+        "intersection": 5929582,
+        "union": 9416679,
+        "total_count": 7659288,
+        "mean_IU": 0.63
     },
     "motorcycle": {
-        "intersection": 0,
-        "union": 17248,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 6467720,
+        "union": 7716685,
+        "total_count": 7137182,
+        "mean_IU": 0.838
     },
     "airplane": {
-        "intersection": 0,
-        "union": 4719,
-        "total_count": 2033,
-        "mean_IU": 0.0
+        "intersection": 2334381,
+        "union": 2806665,
+        "total_count": 2519386,
+        "mean_IU": 0.832
     },
     "bus": {
-        "intersection": 69,
-        "union": 458508,
-        "total_count": 455099,
-        "mean_IU": 0.0
+        "intersection": 10419486,
+        "union": 12838512,
+        "total_count": 11674442,
+        "mean_IU": 0.812
     },
     "train": {
-        "intersection": 66,
-        "union": 35086,
-        "total_count": 24033,
-        "mean_IU": 0.002
+        "intersection": 10047451,
+        "union": 11992002,
+        "total_count": 11151097,
+        "mean_IU": 0.838
     },
     "truck": {
-        "intersection": 0,
-        "union": 900,
-        "total_count": 668,
-        "mean_IU": 0.0
+        "intersection": 4902311,
+        "union": 8673796,
+        "total_count": 7279313,
+        "mean_IU": 0.565
     },
     "boat": {
-        "intersection": 0,
-        "union": 7383,
-        "total_count": 7098,
-        "mean_IU": 0.0
+        "intersection": 2309371,
+        "union": 3821891,
+        "total_count": 2764487,
+        "mean_IU": 0.604
     },
     "traffic light": {
-        "intersection": 0,
-        "union": 14016,
-        "total_count": 438,
-        "mean_IU": 0.0
+        "intersection": 759557,
+        "union": 960632,
+        "total_count": 837282,
+        "mean_IU": 0.791
     },
     "fire hydrant": {
-        "intersection": 0,
-        "union": 318,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 1815403,
+        "union": 1924483,
+        "total_count": 1875217,
+        "mean_IU": 0.943
     },
     "stop sign": {
-        "intersection": 0,
-        "union": 19631,
-        "total_count": 16767,
-        "mean_IU": 0.0
+        "intersection": 1508437,
+        "union": 1574008,
+        "total_count": 1527520,
+        "mean_IU": 0.958
     },
     "parking meter": {
-        "intersection": 0,
-        "union": 7384,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 592487,
+        "union": 848485,
+        "total_count": 771925,
+        "mean_IU": 0.698
     },
     "bench": {
-        "intersection": 0,
-        "union": 337,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 3286148,
+        "union": 6404537,
+        "total_count": 4843705,
+        "mean_IU": 0.513
     },
     "bird": {
-        "intersection": 0,
-        "union": 33065,
-        "total_count": 1173,
-        "mean_IU": 0.0
+        "intersection": 1630686,
+        "union": 2091122,
+        "total_count": 1858922,
+        "mean_IU": 0.78
     },
     "cat": {
-        "intersection": 8,
-        "union": 225123,
-        "total_count": 224265,
-        "mean_IU": 0.0
+        "intersection": 7644137,
+        "union": 10007122,
+        "total_count": 8679258,
+        "mean_IU": 0.764
     },
     "dog": {
-        "intersection": 0,
-        "union": 5369,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 5788037,
+        "union": 8173968,
+        "total_count": 7049704,
+        "mean_IU": 0.708
     },
     "horse": {
-        "intersection": 0,
-        "union": 6722,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 3516873,
+        "union": 4253003,
+        "total_count": 3867057,
+        "mean_IU": 0.827
     },
     "sheep": {
-        "intersection": 0,
-        "union": 4147,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 3534885,
+        "union": 3985327,
+        "total_count": 3696521,
+        "mean_IU": 0.887
     },
     "cow": {
-        "intersection": 0,
-        "union": 349,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 3491573,
+        "union": 4394823,
+        "total_count": 4053143,
+        "mean_IU": 0.794
     },
     "elephant": {
-        "intersection": 0,
-        "union": 566454,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 7035514,
+        "union": 7509297,
+        "total_count": 7257913,
+        "mean_IU": 0.937
     },
     "bear": {
-        "intersection": 16,
-        "union": 276045,
-        "total_count": 275827,
-        "mean_IU": 0.0
+        "intersection": 3132070,
+        "union": 3521856,
+        "total_count": 3470403,
+        "mean_IU": 0.889
     },
     "zebra": {
-        "intersection": 3024,
-        "union": 281175,
-        "total_count": 209228,
-        "mean_IU": 0.011
+        "intersection": 5307020,
+        "union": 5493885,
+        "total_count": 5431978,
+        "mean_IU": 0.966
     },
     "giraffe": {
-        "intersection": 0,
-        "union": 80088,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 3669836,
+        "union": 3896569,
+        "total_count": 3729614,
+        "mean_IU": 0.942
     },
     "backpack": {
-        "intersection": 2,
-        "union": 8698,
-        "total_count": 1839,
-        "mean_IU": 0.0
+        "intersection": 258332,
+        "union": 1134954,
+        "total_count": 816700,
+        "mean_IU": 0.228
     },
     "umbrella": {
-        "intersection": 0,
-        "union": 155,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 3478576,
+        "union": 5062014,
+        "total_count": 4318877,
+        "mean_IU": 0.687
     },
     "handbag": {
-        "intersection": 1237,
-        "union": 408772,
-        "total_count": 18579,
-        "mean_IU": 0.003
+        "intersection": 197285,
+        "union": 1280752,
+        "total_count": 1126662,
+        "mean_IU": 0.154
     },
     "tie": {
-        "intersection": 616,
-        "union": 169035,
-        "total_count": 27349,
-        "mean_IU": 0.004
+        "intersection": 440187,
+        "union": 805433,
+        "total_count": 707348,
+        "mean_IU": 0.547
     },
     "suitcase": {
-        "intersection": 0,
-        "union": 41627,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 3047230,
+        "union": 4285125,
+        "total_count": 3783301,
+        "mean_IU": 0.711
     },
     "frisbee": {
-        "intersection": 0,
-        "union": 7306,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 223135,
+        "union": 443565,
+        "total_count": 274224,
+        "mean_IU": 0.503
     },
     "skis": {
-        "intersection": 0,
-        "union": 5119,
-        "total_count": 5092,
-        "mean_IU": 0.0
+        "intersection": 200275,
+        "union": 369950,
+        "total_count": 292037,
+        "mean_IU": 0.541
     },
     "snowboard": {
-        "intersection": 0,
-        "union": 5033,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 130140,
+        "union": 283265,
+        "total_count": 206704,
+        "mean_IU": 0.459
     },
     "sports ball": {
-        "intersection": 0,
-        "union": 9782,
-        "total_count": 226,
-        "mean_IU": 0.0
+        "intersection": 89496,
+        "union": 202063,
+        "total_count": 155767,
+        "mean_IU": 0.443
     },
     "kite": {
-        "intersection": 0,
-        "union": 13170,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 583653,
+        "union": 970473,
+        "total_count": 798621,
+        "mean_IU": 0.601
     },
     "baseball bat": {
-        "intersection": 0,
-        "union": 74064,
-        "total_count": 462,
-        "mean_IU": 0.0
+        "intersection": 82662,
+        "union": 220329,
+        "total_count": 189641,
+        "mean_IU": 0.375
     },
     "baseball glove": {
-        "intersection": 4,
-        "union": 7516,
-        "total_count": 1331,
-        "mean_IU": 0.001
+        "intersection": 183187,
+        "union": 321948,
+        "total_count": 288127,
+        "mean_IU": 0.569
     },
     "skateboard": {
-        "intersection": 0,
-        "union": 11691,
-        "total_count": 11681,
-        "mean_IU": 0.0
+        "intersection": 502431,
+        "union": 1021821,
+        "total_count": 884926,
+        "mean_IU": 0.492
     },
     "surfboard": {
-        "intersection": 0,
-        "union": 9005,
-        "total_count": 9002,
-        "mean_IU": 0.0
+        "intersection": 1315400,
+        "union": 1766222,
+        "total_count": 1484321,
+        "mean_IU": 0.745
     },
     "tennis racket": {
-        "intersection": 249,
-        "union": 298241,
-        "total_count": 4273,
-        "mean_IU": 0.001
+        "intersection": 660292,
+        "union": 1082121,
+        "total_count": 1015649,
+        "mean_IU": 0.61
     },
     "bottle": {
-        "intersection": 1,
-        "union": 26940,
-        "total_count": 3650,
-        "mean_IU": 0.0
+        "intersection": 1358296,
+        "union": 3135094,
+        "total_count": 2207563,
+        "mean_IU": 0.433
     },
     "wine glass": {
-        "intersection": 24,
-        "union": 20245,
-        "total_count": 7672,
-        "mean_IU": 0.001
+        "intersection": 333011,
+        "union": 810376,
+        "total_count": 700115,
+        "mean_IU": 0.411
     },
     "cup": {
-        "intersection": 0,
-        "union": 14264,
-        "total_count": 14239,
-        "mean_IU": 0.0
+        "intersection": 1246349,
+        "union": 4238317,
+        "total_count": 2485348,
+        "mean_IU": 0.294
     },
     "fork": {
-        "intersection": 0,
-        "union": 46,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 73619,
+        "union": 473598,
+        "total_count": 408390,
+        "mean_IU": 0.155
     },
     "knife": {
-        "intersection": 0,
-        "union": 3,
-        "total_count": 3,
-        "mean_IU": 0.0
+        "intersection": 53769,
+        "union": 469023,
+        "total_count": 298551,
+        "mean_IU": 0.115
     },
     "spoon": {
-        "intersection": 0,
-        "union": 67314,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 21442,
+        "union": 314218,
+        "total_count": 298934,
+        "mean_IU": 0.068
     },
     "bowl": {
-        "intersection": 219,
-        "union": 429220,
-        "total_count": 415927,
-        "mean_IU": 0.001
+        "intersection": 4186370,
+        "union": 11483053,
+        "total_count": 8422408,
+        "mean_IU": 0.365
     },
     "banana": {
-        "intersection": 57,
-        "union": 180748,
-        "total_count": 178225,
-        "mean_IU": 0.0
+        "intersection": 2488542,
+        "union": 4039277,
+        "total_count": 3207310,
+        "mean_IU": 0.616
     },
     "apple": {
-        "intersection": 6,
-        "union": 43228,
-        "total_count": 39935,
-        "mean_IU": 0.0
+        "intersection": 1052526,
+        "union": 2229859,
+        "total_count": 1463635,
+        "mean_IU": 0.472
     },
     "sandwich": {
-        "intersection": 6,
-        "union": 66654,
-        "total_count": 61496,
-        "mean_IU": 0.0
+        "intersection": 1493762,
+        "union": 3998503,
+        "total_count": 3210904,
+        "mean_IU": 0.374
     },
     "orange": {
-        "intersection": 0,
-        "union": 12820,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 1601546,
+        "union": 2903104,
+        "total_count": 2499828,
+        "mean_IU": 0.552
     },
     "broccoli": {
-        "intersection": 49,
-        "union": 36726,
-        "total_count": 31169,
-        "mean_IU": 0.001
+        "intersection": 1447499,
+        "union": 2541602,
+        "total_count": 2137171,
+        "mean_IU": 0.57
     },
     "carrot": {
-        "intersection": 0,
-        "union": 14,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 656112,
+        "union": 1431851,
+        "total_count": 1306483,
+        "mean_IU": 0.458
     },
     "hot dog": {
-        "intersection": 0,
-        "union": 115462,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 1086553,
+        "union": 2060725,
+        "total_count": 1769846,
+        "mean_IU": 0.527
     },
     "pizza": {
-        "intersection": 0,
-        "union": 2475,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 5491891,
+        "union": 9590197,
+        "total_count": 7766313,
+        "mean_IU": 0.573
     },
     "donut": {
-        "intersection": 486,
-        "union": 203730,
-        "total_count": 47415,
-        "mean_IU": 0.002
+        "intersection": 1919873,
+        "union": 3222211,
+        "total_count": 2557487,
+        "mean_IU": 0.596
     },
     "cake": {
-        "intersection": 0,
-        "union": 8640,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 2598455,
+        "union": 4840054,
+        "total_count": 4000116,
+        "mean_IU": 0.537
     },
     "chair": {
-        "intersection": 2,
-        "union": 36896,
-        "total_count": 36661,
-        "mean_IU": 0.0
+        "intersection": 4787665,
+        "union": 12937360,
+        "total_count": 8833448,
+        "mean_IU": 0.37
     },
     "couch": {
-        "intersection": 0,
-        "union": 50978,
-        "total_count": 50975,
-        "mean_IU": 0.0
+        "intersection": 5834053,
+        "union": 11528040,
+        "total_count": 8006279,
+        "mean_IU": 0.506
     },
     "potted plant": {
-        "intersection": 97,
-        "union": 161522,
-        "total_count": 9875,
-        "mean_IU": 0.001
+        "intersection": 1534370,
+        "union": 2849696,
+        "total_count": 2378228,
+        "mean_IU": 0.538
     },
     "bed": {
-        "intersection": 0,
-        "union": 135686,
-        "total_count": 135683,
-        "mean_IU": 0.0
+        "intersection": 9339258,
+        "union": 16919276,
+        "total_count": 13393509,
+        "mean_IU": 0.552
     },
     "dining table": {
-        "intersection": 1023,
-        "union": 914830,
-        "total_count": 901869,
-        "mean_IU": 0.001
+        "intersection": 31596300,
+        "union": 62033889,
+        "total_count": 41025735,
+        "mean_IU": 0.509
     },
     "toilet": {
-        "intersection": 279,
-        "union": 136310,
-        "total_count": 36542,
-        "mean_IU": 0.002
+        "intersection": 3916445,
+        "union": 5771899,
+        "total_count": 4670740,
+        "mean_IU": 0.679
     },
     "tv": {
-        "intersection": 0,
-        "union": 179340,
-        "total_count": 179283,
-        "mean_IU": 0.0
+        "intersection": 4831732,
+        "union": 6634538,
+        "total_count": 5609183,
+        "mean_IU": 0.728
     },
     "laptop": {
-        "intersection": 6,
-        "union": 53984,
-        "total_count": 47714,
-        "mean_IU": 0.0
+        "intersection": 4680877,
+        "union": 6795944,
+        "total_count": 5637277,
+        "mean_IU": 0.689
     },
     "mouse": {
-        "intersection": 75,
-        "union": 523623,
-        "total_count": 664,
-        "mean_IU": 0.0
+        "intersection": 190263,
+        "union": 347326,
+        "total_count": 282176,
+        "mean_IU": 0.548
     },
     "remote": {
-        "intersection": 0,
-        "union": 551,
-        "total_count": 551,
-        "mean_IU": 0.0
+        "intersection": 257028,
+        "union": 867572,
+        "total_count": 620171,
+        "mean_IU": 0.296
     },
     "keyboard": {
-        "intersection": 1,
-        "union": 52989,
-        "total_count": 52784,
-        "mean_IU": 0.0
+        "intersection": 1163897,
+        "union": 2049715,
+        "total_count": 1834294,
+        "mean_IU": 0.568
     },
     "cell phone": {
-        "intersection": 2682,
-        "union": 2517701,
-        "total_count": 8241,
-        "mean_IU": 0.001
+        "intersection": 1690441,
+        "union": 2544329,
+        "total_count": 2042983,
+        "mean_IU": 0.664
     },
     "microwave": {
-        "intersection": 0,
-        "union": 1329,
-        "total_count": 220,
-        "mean_IU": 0.0
+        "intersection": 755893,
+        "union": 1300396,
+        "total_count": 982376,
+        "mean_IU": 0.581
     },
     "oven": {
-        "intersection": 0,
-        "union": 29488,
-        "total_count": 26213,
-        "mean_IU": 0.0
+        "intersection": 3222099,
+        "union": 5975012,
+        "total_count": 4927248,
+        "mean_IU": 0.539
     },
     "toaster": {
-        "intersection": 0,
-        "union": 1400,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 3163,
+        "union": 152562,
+        "total_count": 152471,
+        "mean_IU": 0.021
     },
     "sink": {
-        "intersection": 0,
-        "union": 3044,
-        "total_count": 3026,
-        "mean_IU": 0.0
+        "intersection": 1800248,
+        "union": 3034987,
+        "total_count": 2521342,
+        "mean_IU": 0.593
     },
     "refrigerator": {
-        "intersection": 4154,
-        "union": 853177,
-        "total_count": 54396,
-        "mean_IU": 0.005
+        "intersection": 4687762,
+        "union": 6395277,
+        "total_count": 5373518,
+        "mean_IU": 0.733
     },
     "book": {
-        "intersection": 62,
-        "union": 55861,
-        "total_count": 23135,
-        "mean_IU": 0.001
+        "intersection": 2008115,
+        "union": 5152558,
+        "total_count": 2967587,
+        "mean_IU": 0.39
     },
     "clock": {
-        "intersection": 0,
-        "union": 3106,
-        "total_count": 434,
-        "mean_IU": 0.0
+        "intersection": 1622311,
+        "union": 2354171,
+        "total_count": 2032664,
+        "mean_IU": 0.689
     },
     "vase": {
-        "intersection": 0,
-        "union": 2656,
-        "total_count": 2656,
-        "mean_IU": 0.0
+        "intersection": 1641421,
+        "union": 2938039,
+        "total_count": 2333891,
+        "mean_IU": 0.559
     },
     "scissors": {
-        "intersection": 0,
-        "union": 12781,
-        "total_count": 6029,
-        "mean_IU": 0.0
+        "intersection": 595978,
+        "union": 1155769,
+        "total_count": 871368,
+        "mean_IU": 0.516
     },
     "teddy bear": {
-        "intersection": 205,
-        "union": 289418,
-        "total_count": 229637,
-        "mean_IU": 0.001
+        "intersection": 4575650,
+        "union": 6252174,
+        "total_count": 5217838,
+        "mean_IU": 0.732
     },
     "hair drier": {
         "intersection": 0,
-        "union": 32338,
-        "total_count": 0,
+        "union": 71634,
+        "total_count": 71634,
         "mean_IU": 0.0
     },
     "toothbrush": {
-        "intersection": 0,
-        "union": 13023,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 51721,
+        "union": 191634,
+        "total_count": 115122,
+        "mean_IU": 0.27
     },
     "blanket": {
-        "intersection": 0,
-        "union": 10215,
-        "total_count": 5104,
-        "mean_IU": 0.0
+        "intersection": 54048,
+        "union": 2175661,
+        "total_count": 1967792,
+        "mean_IU": 0.025
     },
     "carpet": {
-        "intersection": 113,
-        "union": 74813,
-        "total_count": 61181,
-        "mean_IU": 0.002
+        "intersection": 3560045,
+        "union": 8849054,
+        "total_count": 4781925,
+        "mean_IU": 0.402
     },
     "ceiling": {
-        "intersection": 13,
-        "union": 115829,
-        "total_count": 113302,
-        "mean_IU": 0.0
+        "intersection": 8908861,
+        "union": 13701943,
+        "total_count": 12244276,
+        "mean_IU": 0.65
     },
     "clothes": {
-        "intersection": 0,
-        "union": 61617,
-        "total_count": 61364,
-        "mean_IU": 0.0
+        "intersection": 631153,
+        "union": 6514094,
+        "total_count": 5523222,
+        "mean_IU": 0.097
     },
     "cupboard": {
-        "intersection": 0,
-        "union": 128286,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 206371,
+        "union": 967645,
+        "total_count": 523043,
+        "mean_IU": 0.213
     },
     "curtain": {
-        "intersection": 0,
-        "union": 2404,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 4995391,
+        "union": 10001252,
+        "total_count": 6247277,
+        "mean_IU": 0.499
     },
     "desk-stuff": {
-        "intersection": 410,
-        "union": 98756,
-        "total_count": 74156,
-        "mean_IU": 0.004
+        "intersection": 2485152,
+        "union": 7279050,
+        "total_count": 5711049,
+        "mean_IU": 0.341
     },
     "floor": {
-        "intersection": 7440,
-        "union": 562995,
-        "total_count": 373852,
-        "mean_IU": 0.013
+        "intersection": 21131322,
+        "union": 37098189,
+        "total_count": 28783769,
+        "mean_IU": 0.57
     },
     "furniture-other": {
-        "intersection": 0,
-        "union": 63093,
-        "total_count": 62707,
-        "mean_IU": 0.0
+        "intersection": 3263118,
+        "union": 25091369,
+        "total_count": 18859989,
+        "mean_IU": 0.13
     },
     "light": {
-        "intersection": 2,
-        "union": 23067,
-        "total_count": 3903,
-        "mean_IU": 0.0
+        "intersection": 689558,
+        "union": 2225078,
+        "total_count": 1671872,
+        "mean_IU": 0.31
     },
     "mirror-stuff": {
-        "intersection": 1494,
-        "union": 239199,
-        "total_count": 101678,
-        "mean_IU": 0.006
+        "intersection": 1371679,
+        "union": 4871474,
+        "total_count": 4510164,
+        "mean_IU": 0.282
     },
     "rug": {
-        "intersection": 0,
-        "union": 40906,
-        "total_count": 40906,
-        "mean_IU": 0.0
+        "intersection": 592235,
+        "union": 2957631,
+        "total_count": 1712696,
+        "mean_IU": 0.2
     },
     "shelf": {
-        "intersection": 0,
-        "union": 25398,
-        "total_count": 25395,
-        "mean_IU": 0.0
+        "intersection": 1788836,
+        "union": 6583870,
+        "total_count": 4453346,
+        "mean_IU": 0.272
     },
     "table": {
-        "intersection": 204,
-        "union": 214063,
-        "total_count": 209416,
-        "mean_IU": 0.001
+        "intersection": 4248797,
+        "union": 22905301,
+        "total_count": 16692506,
+        "mean_IU": 0.185
     },
     "towel": {
-        "intersection": 0,
-        "union": 15,
-        "total_count": 0,
-        "mean_IU": 0.0
+        "intersection": 256113,
+        "union": 1358514,
+        "total_count": 1107858,
+        "mean_IU": 0.189
     },
     "wall": {
-        "intersection": 3,
-        "union": 1148567,
-        "total_count": 1148567,
-        "mean_IU": 0.0
+        "intersection": 116329691,
+        "union": 157625920,
+        "total_count": 132562720,
+        "mean_IU": 0.738
     },
-    "mean_IU": 0.0007320012286356333,
-    "weighted_mean_IU": 0.002176240474085099
+    "mean_IU": 0.5332986006451546,
+    "weighted_mean_IU": 0.6428112079090481
 }

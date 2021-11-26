@@ -65,7 +65,7 @@ def computeMeanIU(model, test_data, cat_map, num_categories, with_depth=False, s
 
                 IU_dict[cat]["intersection"] += int(intersection)
                 IU_dict[cat]["union"] += int(union)
-                IU_dict[cat]["total_count"] += int(num_pixels_per_cat)
+                IU_dict[cat]["total_count"] += int(num_pixels_per_cat) # the total number of actual pixels of this category in the ground truth dataset
 
         for cat in gt_categories_dict.keys():
             if cat not in pred_categories_dict.keys():

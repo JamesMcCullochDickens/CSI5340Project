@@ -1,0 +1,4 @@
+batch_size = 12
+num_epochs = 21
+optimizer = torch.optim.SGD(model.parameters(), lr=0.007, momentum=0.9, weight_decay=0.0005)
+lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=3, gamma=0.9, verbose=True)

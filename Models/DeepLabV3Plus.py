@@ -3,15 +3,19 @@ from torch import nn
 from torch.nn import functional as F
 import Backbones.ResNet as ResNet
 import ExtraLosses.Losses as losses
+import torchvision.models.segmentation as SegModels
+
 
 class DeepLabHeadV3Plus(nn.Module):
     def __init__(self, backbone=None, in_channels=2048, low_level_channels=256, num_classes=37, aspp_dilate=[12, 24, 36], loss="ce"):
         super(DeepLabHeadV3Plus, self).__init__()
 
         if backbone is None:
-            rn_101 = ResNet.remove_head(ResNet.resnet101(pretrained=True, dilation_vals=[False, True, True]))
-            self.backbone = ResNet.DeepLabV3PlusBackbone(rn_101)
-
+            #rn_101 = ResNet.remove_head(ResNet.resnet101(pretrained=True, dilation_vals=[False, True, True]))
+            # self.backbone = ResNet.DeepLabV3PlusBackbone(backbone)
+            self.backbone = SegModels.deeplabv3_resnet101(pretrained=True).backbone
+        else:
+            self.backbone = backbone
         self.project = nn.Sequential(
             nn.Conv2d(low_level_channels, 48, 1, bias=False),
             nn.BatchNorm2d(48),
@@ -20,18 +24,20 @@ class DeepLabHeadV3Plus(nn.Module):
 
         self.aspp = ASPP(in_channels, aspp_dilate)
 
-        self.classifier = nn.Sequential(
+        classifier = nn.Sequential(
             nn.Conv2d(304, 256, 3, padding=1, bias=False),
             nn.BatchNorm2d(256),
             nn.ReLU(inplace=True),
             nn.Conv2d(256, num_classes, 1)
         )
-        self._init_weight()
+        #self._init_weight()
         if loss == "ce":
             self.loss = nn.CrossEntropyLoss(ignore_index=0)
         elif loss == "focal_loss":
             self.loss = losses.FocalLoss()
             pass
+
+        self.classifier = convert_to_separable_conv(classifier)
 
     def forward(self, ims, gt=None, hw_tuple=None):
         im_height = ims.shape[2]

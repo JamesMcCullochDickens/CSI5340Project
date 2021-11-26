@@ -145,7 +145,7 @@ def write_unlabelled_frames():
                     inpainted_depth = Image.fromarray(s_utils.normalizeDepthImage(inpainted_depth))
                     inpainted_depth.save(os.path.join(NYUDv2_outer_path, unlabeled_path, unlabeled_pairs, frame_pair[0] + "_inpainted_depth.png"))
 
-#write_unlabelled_frames()
+write_unlabelled_frames()
 
 def convert_im_num_to_srgbd_fmt(im_nums):
     return im_nums - 5000

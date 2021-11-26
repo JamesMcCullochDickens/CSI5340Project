@@ -1,63 +1,88 @@
+import os
+import PIL.Image
 import torch
 import torchvision
 import numpy as np
 import cv2
-from itertools import tee
-import math
-#from BoxUtils import BB_Utils
 from PIL import Image, ImageDraw, ImageFont
 from scipy import ndimage
+import CacheDictUtils
+import matplotlib.pyplot as plt
+
 
 # vals chosen from https://www.rapidtables.com/web/color/RGB_Color.html
-color_dict = {
+color_dict_NYUDv2 = {
 # for seg values
-0: [153, 0, 0], # unknown: dark red
-1: [255, 128, 0], # wall: medium orange
-2: [51, 102, 0], # floor: dark green
-3: [255, 255, 204], # cabinet: light yellow
-4: [0, 0, 0],  # bed: darkest black
-5: [255, 255, 255], # chair: whitest white
-6: [0, 51, 102], # sofa: dark blue
-7: [128, 128, 128], # table: medium gray
-8: [255, 51, 153], # door: medium pink
-9: [153, 204, 255], # window: light blue
-10: [255, 51, 51], # bookshelf: medium red
-11: [204, 255, 153], # picture: light green
-12: [255, 204, 204], # counter: light red
-13: [127, 0, 255], # blinds: dark purple
-14: [160, 160, 160], # desk: third lightest gray
-15: [204, 153, 255], # shelves: light purple
-16: [102, 0, 51], # curtain: dark magenta
-17: [0, 102, 102], # dresser: dark cyan
-18: [0, 255, 0], # pillow: medium green
-19: [255, 229, 204], # mirror: light orange
-20: [255, 204, 229], # floor mat: light pink
-21: [255, 0, 127], # clothes: medium magenta
-22: [0, 128, 255], # ceiling: medium blue
-23: [224, 224, 224], # books: light gray
-24: [0, 255, 255], # fridge: medium cyan
-25: [255, 255, 0], # tv: medium yellow
-26: [255, 0, 255], # paper: medium purple
-27: [255, 204, 229], # towel: light magenta
-28: [153, 76, 0], # shower curtain: dark orange
-29: [204, 255, 204], # box: light simple green
-30: [153, 153, 255], # whiteboard: light blue violet
-31: [153, 255, 255], # person: light cyan
-32: [0, 255, 128], # night stand: medium simple green
-33: [255, 255, 204], # toilet: light yellow
-34: [64, 64, 64], # sink: dark gray
-35: [127, 0, 255], # lamp: medium blue violet
-36: [0, 51, 25], # bathtub: dark simple green
-37: [51, 0, 102], # bag: dark blue violet
-38: [25, 78, 90],   # other-struct"
-39: [230, 34, 78], # other-furniture
-40: [200, 200, 1],  # other-prop
+'0': [244, 174, 174], # unknown: dark red
+'1': [255, 128, 0], # wall: medium orange
+'2': [51, 102, 0], # floor: dark green
+'3': [255, 255, 204], # cabinet: light yellow
+'4': [0, 0, 0],  # bed: darkest black
+'5': [255, 255, 255], # chair: whitest white
+'6': [0, 51, 102], # sofa: dark blue
+'7': [128, 128, 128], # table: medium gray
+'8': [255, 51, 153], # door: medium pink
+'9': [153, 204, 255], # window: light blue
+'10': [255, 51, 51], # bookshelf: medium red
+'11': [204, 255, 153], # picture: light green
+'12': [255, 204, 204], # counter: light red
+'13': [127, 0, 255], # blinds: dark purple
+'14': [160, 160, 160], # desk: third lightest gray
+'15': [204, 153, 255], # shelves: light purple
+'16': [102, 0, 51], # curtain: dark magenta
+'17': [0, 102, 102], # dresser: dark cyan
+'18': [0, 255, 0], # pillow: medium green
+'19': [255, 229, 204], # mirror: light orange
+'20': [255, 204, 229], # floor mat: light pink
+'21': [255, 0, 127], # clothes: medium magenta
+'22': [0, 128, 255], # ceiling: medium blue
+'23': [224, 224, 224], # books: light gray
+'24': [0, 255, 255], # fridge: medium cyan
+'25': [255, 255, 0], # tv: medium yellow
+'26': [255, 0, 255], # paper: medium purple
+'27': [255, 204, 229], # towel: light magenta
+'28': [153, 76, 0], # shower curtain: dark orange
+'29': [204, 255, 204], # box: light simple green
+'30': [153, 153, 255], # whiteboard: light blue violet
+'31': [153, 255, 255], # person: light cyan
+'32': [0, 255, 128], # night stand: medium simple green
+'33': [255, 255, 204], # toilet: light yellow
+'34': [64, 64, 64], # sink: dark gray
+'35': [127, 0, 255], # lamp: medium blue violet
+'36': [0, 51, 25], # bathtub: dark simple green
+'37': [51, 0, 102], # bag: dark blue violet
+'38': [25, 78, 90],   # other-struct"
+'39': [230, 34, 78], # other-furniture
+'40': [200, 200, 1],  # other-prop
 }
+
+# fix this path!
+coco_dict_fp = "C:/Users/James/PycharmProjects/CSI5340Project/coco_color_dict"
+coco_color_dict = CacheDictUtils.readReadableCachedDict(coco_dict_fp)
+
+def getRandomRGBVal():
+    return np.random.randint(255, size=3)
+
+def getRandomRGBVal_list():
+    return np.random.randint(255, size=3).tolist()
+
+def generate_coco_color_dict(num_classes = 97, save_fp=None):
+    color_dict_coco = {}
+    color_dict_coco[0] = [200, 0, 0]
+    for i in range(1, num_classes):
+        color_dict_coco[i] = getRandomRGBVal_list()
+    if save_fp is not None:
+        CacheDictUtils.writeReadableCachedDict(save_fp, color_dict_coco)
+    return color_dict_coco
+
+#generate_coco_color_dict(save_fp=coco_dict_fp)
+#debug = "debug"
+
 
 # save an image from a numpy array
 def saveImage(fp, im):
     im_arr = Image.fromarray(im)
-    im_arr.save(fp+".jpg")
+    im_arr.save(fp+".png")
 
 
 
@@ -87,25 +112,12 @@ def showImageWithBoundingBoxes(im, bounding_boxes, labels=None, confidence_score
             img1.text((font_x_min, font_y_min), label, font=fnt, fill=fill_)
     im.show()
 
-
-"""
-random_image = np.random.rand(600, 600, 3)
-random_image = random_image*255
-random_image = random_image.astype(np.uint8)
-bounding_boxes = [[200, 40, 500, 200], [20, 50, 100, 200]]
-labels = ["cat", "dog"]
-confidence_scores = [0.8, 0.9]
-showImageWithBoundingBoxes(random_image, bounding_boxes, labels, confidence_scores)
-debug = "debug"
-"""
-
-def showImage(image, with_resize=False, image_width=600, image_height=600):
-    image = image.astype(np.uint8)
-    image = Image.fromarray(image)
-    image.show()
-    if with_resize:
-        image = image.resize((image_width, image_height))
-        image.show()
+# needs to be channels last [H, W, 3]
+def showImage(im):
+    plt.imshow(im)
+    plt.draw()
+    plt.pause(2)
+    plt.close()
 
 def showImageWithLabel(image, label):
     fnt = ImageFont.truetype("arial.ttf", 25)
@@ -129,21 +141,25 @@ showImage(test_image, with_resize=True)
 debug = "debug"
 """
 
+# assuming resize_tuple is in (height, width)
+# for some reason Pil's resize inputs (width, height)...
+def resize_npy_img(im, resize_tuple):
+    im = Image.fromarray(im)
+    im = im.resize((resize_tuple[1], resize_tuple[0]), resample=PIL.Image.BILINEAR)
+    im = np.asarray(im)
+    return im
 
-
-
-def getRandomRGBVal():
-    return np.random.randint(255, size=3)
-
-def showSegmentationImage(seg_array, original_image = [], with_conversion=False):
+def showSegmentationImage(seg_array, original_image = [], color_dict=None, with_conversion=False):
     image_height = seg_array.shape[0]
     image_width = seg_array.shape[1]
+    if color_dict is None:
+        color_dict = coco_color_dict
     seg_image = np.empty([image_height, image_width, 3], dtype=np.uint8)
     random_color_dict = {}
     for i in range(image_height):
         for j in range(image_width):
-                if seg_array[i][j] in color_dict:
-                    seg_image[i][j] = color_dict[seg_array[i][j]]
+                if str(seg_array[i][j]) in color_dict:
+                    seg_image[i][j] = color_dict[str(seg_array[i][j])]
                 else:
                     if seg_array[i][j] not in random_color_dict:
                         random_color = getRandomRGBVal()
@@ -157,6 +173,9 @@ def showSegmentationImage(seg_array, original_image = [], with_conversion=False)
             original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
         overlayed_segmentation = cv2.addWeighted(original_image, 0.60, seg_image, 0.40, 0)
         showImage(overlayed_segmentation)
+        return overlayed_segmentation
+    else:
+        return seg_image
 
 def getSegmentationImage(seg_array, original_image = []):
     image_height = seg_array.shape[0]
@@ -166,7 +185,7 @@ def getSegmentationImage(seg_array, original_image = []):
     seg_array = np.expand_dims(seg_array, axis=2)
     seg_array = np.concatenate((seg_array, seg_array, seg_array), axis=2)
     for key in unique_vals:
-        seg_image = np.where(seg_array == [key, key, key], color_dict[key], seg_image)
+        seg_image = np.where(seg_array == [key, key, key], coco_color_dict[key], seg_image)
     seg_image = seg_image.astype(np.uint8)
     if original_image != []:
         overlayed_segmentation = cv2.addWeighted(original_image, 0.60, seg_image, 0.40, 0)
@@ -217,65 +236,10 @@ def showBinaryInstanceMasks(image, instance_masks, bbs=None, labels=None, confid
         showImageWithBoundingBoxes(overlayed_segmentation_image, bbs, labels, confidence_scores)
 
 """
-random_image = np.random.randint(255, size=(600, 600, 3))
-random_instance = np.zeros((600, 600))
-for i in range(100, 200):
-    for j in range(100, 200):
-        random_instance[i][j] = 1
-showBinaryInstanceMask(random_image, random_instance)
-"""
-
-def readImage(im_path):
-    img = cv2.imread(im_path)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    return img
-
-"""
-def visualizeIOU(bb1, bb2, image_width=600, image_height=600, image=None, onlyBoundary=False):
-    red = np.array([250, 0, 0], dtype=np.uint8) # bb1 values not in bb1
-    green = np.array([0, 250, 0], dtype=np.uint8) # bb2 values not in bb2
-    blue = np.array([0, 0, 250], dtype=np.uint8) # intersection values
-    bb_image = np.zeros((image_height, image_width, 3), dtype=np.uint8)
-    for i in range(image_height):
-        for j in range(image_width):
-            coord = [j,i]
-            isInBB1 = BB_Utils.isInBB(coord, bb1)
-            isInBB2 = BB_Utils.isInBB(coord, bb2)
-            isOnBoundary = BB_Utils.isOnBoundary(coord, bb1) or BB_Utils.isOnBoundary(coord, bb2)
-            if isInBB1 and isInBB2:
-                if not onlyBoundary:
-                    bb_image[i][j] = blue
-                else:
-                    if isOnBoundary:
-                        bb_image[i][j] = blue
-            elif isInBB1:
-                if not onlyBoundary:
-                    bb_image[i][j] = red
-                else:
-                    if isOnBoundary:
-                        bb_image[i][j] = red
-            elif isInBB2:
-                if not onlyBoundary:
-                    bb_image[i][j] = green
-                else:
-                    if isOnBoundary:
-                        bb_image[i][j] = green
-    if image is not None:
-        bb_image = cv2.addWeighted(bb_image, 0.7, image, 0.3, 0)
-    showImage(bb_image)
-"""
-"""
-# testing visualize IOU
-bb1 = [100, 200, 300, 400]
-bb2 = [90, 80, 250, 500]
-visualizeIOU(bb1, bb2, onlyBoundary=False)
-visualizeIOU(bb1, bb2, onlyBoundary=True)
-"""
-
 class NormalizeInverse(torchvision.transforms.Normalize):
-    """
-    Undoes the normalization and returns the reconstructed images in the input domain.
-    """
+    
+    #Undoes the normalization and returns the reconstructed images in the input domain.
+    
 
     def __init__(self, mean, std):
         mean = torch.as_tensor(mean)
@@ -286,7 +250,9 @@ class NormalizeInverse(torchvision.transforms.Normalize):
 
     def __call__(self, tensor):
         return super().__call__(tensor.clone())
+"""
 
+"""
 def unNormalizeImage(image):
     # these are actually 2012 values...
     image = image.cpu()
@@ -297,6 +263,7 @@ def unNormalizeImage(image):
     un_normalized_image = un_normalized_image.numpy().astype(np.uint8)
     un_normalized_image = np.transpose(un_normalized_image, (1, 2, 0))
     return un_normalized_image
+"""
 
 def cleanBoundingBoxes(bounding_boxes):
     bounding_boxes_np = bounding_boxes[0]
@@ -317,12 +284,6 @@ def linearScaling(tensor):
     tensor = torch.divide((tensor-A), range)
     return tensor
 
-"""
-# testing linear scaling
-t = torch.tensor([[20, 3, 4, 5], [20, 30, 1, 3]])
-t1 = linearScaling(t)
-debug = "debug"
-"""
 
 # input a tensor feature map (C * H * W)
 def visualizeFeatureMap(feature_map, channel=1, with_resize=False, image_width=600, image_height=600):
@@ -335,21 +296,6 @@ def visualizeFeatureMap(feature_map, channel=1, with_resize=False, image_width=6
         showImage(scaled_map, True, image_width, image_height)
     else:
         showImage(scaled_map)
-
-"""
-# testing visualize feature map
-map = torch.randint(1, 100000, (64, 30, 30))
-visualizeFeatureMap(map, 1)
-"""
-
-"""
-def showImageWithClosestBoundingBox(image, rps, bbs, label_names=None): # rps = region proposals, bbs = bounding boxes
-    for index, bb in enumerate(bbs):
-        if label_names is not None:
-            print(label_names[index])
-        rp = BB_Utils.getMaxIOU(bb, rps)[0]
-        showImageWithBoundingBoxes(image, [rp, bb])
-"""
 
 def decodeImageToArray(im_path):
     image = Image.open(im_path)
@@ -411,14 +357,6 @@ def getCannyEdgeDetectedImage(image):
 def resizeImage(image, resize_width, resize_height):
     return cv2.resize(image, (resize_width, resize_height))
 
-
-"""
-test_image_path = "C:/Users/James/PycharmProjects/Masters/SUNRGBDdataset/SUNRGBD/kv2/kinect2data/000002_2014-05-26_14-23-37_260595134347_rgbf000103-resize/image/0000103.jpg"
-im = readImage(test_image_path)
-canny_im = getCannyEdgeDetectedImage(im)
-showImage(canny_im)
-"""
-
 # assuming depth image is of the shape (height, width, 1)
 def convertDepthToJetMap(depth_image):
     height = depth_image.shape[0]
@@ -458,101 +396,9 @@ def convertDepthToJetMap(depth_image):
 
     return (rgb_image*255).astype(np.uint8)
 
-"""
-# testing depth to jet map
-depth_im_path = "C:/Users/James/PycharmProjects/Masters/SUNRGBDdataset/SUNRGBD/kv1/b3dodata/img_0063/depth_bfx/img_0063_abs.png"
-depth_im = np.asarray(Image.open(depth_im_path))
-depth_image_modified = (depth_im * (255/65535)).astype(np.uint8)
-showImage(depth_image_modified)
-depth_im = depth_im.reshape((depth_im.shape[0], depth_im.shape[1], 1))
-jet_map = convertDepthToJetMap(depth_im)
-showImage(jet_map)
-"""
 
 def channelsFirstToChannelsLast(im):
     return np.rollaxis(im, 0, 3)
-
-
-# for an anchor box of area x, aspect ratio w/h
-"""
-def showAnchorBoxes(im, stride, anchor_size, aspect_ratio):
-    ref_box = BB_Utils.getReferenceAnchorBox(anchor_size, aspect_ratio)
-    im_height = im.shape[0]
-    im_width = im.shape[1]
-    num_h = math.floor(im_height/stride)
-    num_w = math.floor(im_width/stride)
-    stride_h = math.floor(im_height/num_h)
-    stride_w = math.floor(im_width/num_w)
-    im = Image.fromarray(im)
-    img1 = ImageDraw.Draw(im)
-    for h in range(num_h):
-        for w in range(num_w):
-            xmin = ref_box[0]+(stride_w*w)
-            ymin = ref_box[1]+(stride_h*h)
-            xmax = ref_box[2]+(stride_w*w)
-            ymax = ref_box[3]+(stride_h*h)
-            if xmin < 0 or ymin < 0 or xmax > im_width-1 or ymax > im_height-1:
-                continue
-            shape = [(xmin, ymin), (xmax, ymax)]
-            img1.rectangle(shape, outline="red", width=3)
-            im.show()
-    im.show()
-"""
-
-def showAnchorBoxesCenters(im, stride, anchor_size, aspect_ratio):
-    ref_box = BB_Utils.getReferenceAnchorBox(anchor_size, aspect_ratio)
-    im_height = im.shape[0]
-    im_width = im.shape[1]
-    num_h = math.floor(im_height / stride)
-    num_w = math.floor(im_width / stride)
-    stride_h = math.floor(im_height / num_h)
-    stride_w = math.floor(im_width / num_w)
-    im = Image.fromarray(im)
-    img1 = ImageDraw.Draw(im)
-    for h in range(num_h):
-        for w in range(num_w):
-            xmin = ref_box[0] + (stride_w * w)
-            ymin = ref_box[1] + (stride_h * h)
-            xmax = ref_box[2] + (stride_w * w)
-            ymax = ref_box[3] + (stride_h * h)
-            xmin = int(xmin+xmax)/2
-            xmax = xmin+5
-            ymin = int(ymin+ymax)/2
-            ymax = ymin+5
-            shape = [(xmin, ymin), (xmax, ymax)]
-            img1.rectangle(shape, outline="red", width=3)
-    im.show()
-
-def showSampleAnchorBoxes(im, stride, anchor_sizes, aspect_ratios):
-    im_height = im.shape[0]
-    im_width = im.shape[1]
-    num_h = math.floor(im_height / stride)
-    num_w = math.floor(im_width / stride)
-    stride_h = math.floor(im_height / num_h)
-    stride_w = math.floor(im_width / num_w)
-    im = Image.fromarray(im)
-    img1 = ImageDraw.Draw(im)
-    for anchor_size in anchor_sizes:
-        for aspect_ratio in aspect_ratios:
-            ref_box = BB_Utils.getReferenceAnchorBox(anchor_size, aspect_ratio)
-            xmin = ref_box[0] + (stride_w * 2)
-            ymin = ref_box[1] + (stride_h * 2)
-            xmax = ref_box[2] + (stride_w * 2)
-            ymax = ref_box[3] + (stride_h * 2)
-            if xmin < 0 or ymin < 0 or xmax > im_width - 1 or ymax > im_height - 1:
-                continue
-            shape = [(xmin, ymin), (xmax, ymax)]
-            img1.rectangle(shape, outline="red", width=3)
-    im.show()
-
-
-"""
-# testing showAnchorBoxes
-im_path = "C:/Users/James/PycharmProjects/Masters/MS_COCO/train2014/COCO_train2014_000000000009.jpg"
-im = np.asarray(Image.open(im_path))
-showAnchorBoxesCenters(im, 32, 256, 1.5)
-#showSampleAnchorBoxes(im, 32, [32, 64, 256, 512], [0.5, 1.0, 1.5])
-"""
 
 def channelsFirstToLast(arr):
     return np.moveaxis(arr, 0, -1)
@@ -582,77 +428,6 @@ def normalizeDepthImage(depth_im):
     depth_im_c *= 255
     return depth_im_c.astype(np.uint8)
 
-"""
-# testing the appearance of normalizeDepthImage
-rgb_im1 = np.asarray(Image.open("F:/Datasets/NYUDv2/eccv14-data/data/images/img_5001.png"))
-showImage(rgb_im1)
-depth_im1 = np.asarray(Image.open("F:/Datasets/NYUDv2/eccv14-data/data/depth/img_5001.png"))
-depth_im1 = normalizeDepthImage(depth_im1)
-showImage(depth_im1)
-"""
-
-
-def getPSMask(seg_mask, instance_masks, seg_mask_max_label=40):
-    label_num = seg_mask_max_label
-    for instance_mask in instance_masks:
-        label_num += 1
-        seg_mask = np.where(instance_mask == 1, label_num, seg_mask)
-    return seg_mask
-
-def showPSMask(ps_mask, original_image=[], with_conversion=False):
-    image_height = ps_mask.shape[0]
-    image_width = ps_mask.shape[1]
-    seg_image = np.empty([image_height, image_width, 3], dtype=np.uint8)
-    new_color_dict = {}
-    for i in range(image_height):
-        for j in range(image_width):
-            if ps_mask[i][j] <= 37:
-                seg_image[i][j] = color_dict[ps_mask[i][j]]
-            else:
-                if ps_mask[i][j] in new_color_dict.keys():
-                    seg_image[i][j] = new_color_dict[ps_mask[i][j]]
-                else:
-                    new_color_dict[ps_mask[i][j]] = np.random.randint(low=0, high=255, size=3)
-                    seg_image[i][j] = new_color_dict[ps_mask[i][j]]
-
-    showImage(seg_image)
-    if original_image != []:
-        if with_conversion:
-            original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
-        overlayed_segmentation = cv2.addWeighted(original_image, 0.60, seg_image, 0.40, 0)
-        showImage(overlayed_segmentation)
-
-
-
-# np.random.randint(low=0, high=255, size=3)
-# p_ps_mask for predicted panoptic segmentation mask
-def getPsMask(p_ps_mask, im, num_classes):
-    image_height = p_ps_mask.shape[0]
-    image_width = p_ps_mask.shape[1]
-    ps_mask = np.empty([image_height, image_width, 3], dtype=np.uint8)
-    p_ps_mask = np.expand_dims(p_ps_mask, axis=2)
-    p_ps_mask = np.concatenate((p_ps_mask, p_ps_mask, p_ps_mask), axis=2)
-    unique_vals = np.unique(p_ps_mask)
-    for val in unique_vals:
-        if val <= num_classes:
-            ps_mask = np.where(p_ps_mask == [val, val, val], color_dict[val], ps_mask)
-        else:
-            new_color = np.random.randint(low=0, high=255, size=3)
-            ps_mask = np.where(p_ps_mask == [val, val, val], new_color, ps_mask)
-    ps_mask = ps_mask.astype(np.uint8)
-    overlayed_segmentation = cv2.addWeighted(im, 0.60, ps_mask, 0.40, 0)
-    return ps_mask, overlayed_segmentation
-
-
-"""
-im_path = "C:/Users/James/PycharmProjects/Masters/MS_COCO/train2014/COCO_train2014_000000000009.jpg"
-im = np.asarray(Image.open(im_path))
-greyscale_im1 = convertToGrayScaleWeightedMethod(im)
-showImage(greyscale_im1)
-greyscale_im2 = convertToGrayScaleMaxMethod(im)
-showImage(greyscale_im2)
-"""
-
 # assumes images are in channels last format and of the same size
 # this is done horizontally
 def concatenateImagesHorizontally(ims):
@@ -660,12 +435,3 @@ def concatenateImagesHorizontally(ims):
 
 def concatenateImagesVertically(ims):
     return np.concatenate([im for im in ims], axis=0)
-
-"""
-# testing concatenate images
-im_path = "C:/Users/James/PycharmProjects/Masters/MS_COCO/train2014/COCO_train2014_000000000009.jpg"
-im1 = np.asarray(Image.open(im_path))
-ims = [im1, im1]
-concatenated_ims = concatenateImagesHorizontally(ims)
-showImage(concatenated_ims)
-"""

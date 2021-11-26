@@ -4,9 +4,7 @@ import scipy
 #from scipy.sparse.linalg import spsolve
 from PIL import Image
 from pypardiso import spsolve
-from numba import double, jit
-import numba
-from numba import cuda
+
 
 # fill_depth_colorization.m
 # Preprocesses the kinect depth image using a gray scale version of the

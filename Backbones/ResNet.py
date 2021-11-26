@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torchvision.models._utils
 from torchvision._internally_replaced_utils import load_state_dict_from_url
 
 
@@ -356,8 +357,6 @@ class DeepLabV3PlusBackbone(torch.nn.Module):
         return features
 
 
-
-
 """
 # testing the dilation vals stuff
 rn_101 = remove_head(resnet101(pretrained=True, dilation_vals=[False, True, True])).cuda() # Stride 8 ResNet101
@@ -372,5 +371,27 @@ debug = "debug"
 rn_101 = remove_head(resnet101(pretrained=True, dilation_vals=[False, False, True])).cuda() # Stride 16 ResNet101
 im = torch.rand(1, 3, 600, 600).cuda()
 output = rn_101(im)
+debug = "debug"
+"""
+
+def get_grayscale_rn50_backbone(pre_trained=True, with_pooling=False):
+    if not with_pooling:
+        rn_50 = remove_head(resnet50(pretrained=pre_trained, progress=False, dilation_vals=[False, True, True]))
+    else:
+        rn_50 = remove_classification(resnet50(pretrained=pre_trained, progress=False, dilation_vals=[False, True, True]))
+    rn_50 = list(rn_50.children())
+    new_conv = torch.nn.Conv2d(in_channels=1, out_channels=64, kernel_size=7, stride=(2, 2), padding=(3, 3), bias=False)
+    if pre_trained:
+        old_conv = rn_50[0]
+        old_conv_weight = torch.tensor(old_conv.weight.clone().detach().requires_grad_(True))
+        new_conv_weight = torch.unsqueeze(torch.mean(old_conv_weight, dim=1), dim=1)
+        new_conv.weight = torch.nn.Parameter(new_conv_weight)
+        rn_50[0] = new_conv
+    else:
+        rn_50[0] = new_conv
+    return torch.nn.Sequential(*rn_50)
+
+"""
+rn_50_grayscale = get_grayscale_rn50_backbone()
 debug = "debug"
 """
