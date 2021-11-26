@@ -8,6 +8,7 @@ import Backbones.ResNet as rn
 import logging
 import Models.BYOL as byol
 logging.captureWarnings(True)
+import time
 
 saved_models_path = os.path.join(os.getcwd(), "Trained_Models")
 saved_plots_path = os.path.join(os.getcwd(), "Saved_Plots")
@@ -64,11 +65,12 @@ def train(model, optimizer, lr_scheduler, dataloader, sub_batch_num, num_epochs,
         epoch_min = 1
     else:
         epoch_min = epoch
+    t1 = time.time()
     for epoch_num in range(epoch_min, num_epochs + 1):
         epoch_loss = 0.0
         iteration_losses = []
         for batch_num, data in enumerate(dataloader):
-            if batch_num % 100 == 0 and batch_num != 0:
+            if batch_num % 50 == 0 and batch_num != 0:
                 print("Batch num " + str(batch_num))
             ims = data.to('cuda:0', non_blocking=True)
             N_ = ims.shape[0]
@@ -84,6 +86,8 @@ def train(model, optimizer, lr_scheduler, dataloader, sub_batch_num, num_epochs,
             if batch_num % sub_batch_num == 0 and batch_num != 0:
                 optimizer.step()
                 optimizer.zero_grad(set_to_none=True)
+        t2 = time.time()
+        print("The first epoch took " + str(t2-t1) + " seconds")
         lr_scheduler.step()
         loss_dict["epoch_losses"].extend([epoch_loss])
         loss_dict["iteration_losses"].extend(iteration_losses)
@@ -92,12 +96,12 @@ def train(model, optimizer, lr_scheduler, dataloader, sub_batch_num, num_epochs,
     return {"epoch_losses": loss_dict["epoch_losses"], "iteration_losses": loss_dict["iteration_losses"]}
 
 if __name__ == "__main__":
-    num_epochs = 20
+    num_epochs = 100
     sub_batch_num = 8
     model_name = "BYOL_Exp1"
     save_path = os.path.join(saved_models_path, model_name)
     #load_path = os.path.join(saved_models_path, model_name)
-    dataloader = dl.get_unlabeled_pair_dl(batch_size=64, num_workers=0, depth_only=True)
+    dataloader = dl.get_unlabeled_pair_dl(batch_size=64, num_workers=8, depth_only=True)
     rn_50 = rn.get_grayscale_rn50_backbone(pre_trained=False, with_pooling=True)
     model = byol.BYOL(input_dim=2048, backbone=rn_50)
     optimizer = torch.optim.SGD(model.parameters(), lr=0.007, momentum=0.9, weight_decay=0.0005)

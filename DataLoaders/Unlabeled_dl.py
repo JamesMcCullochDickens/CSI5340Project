@@ -18,25 +18,41 @@ sun_rgbd_test_path = "SUNRGBDv2Test"
 unlabeled_pairs_srgbd_path = os.path.join(SUNRGBD_outer_path, sun_rgbd_test_path)
 
 resize_tuple = (600, 800)
-num_pairs = 13947
+num_pairs = 13944
 
 def is_folder_empty(fp):
     dirContents = os.listdir(fp)
-    return len(dirContents) == 0
+    is_empty = len(dirContents) == 0
+    return is_empty
+
+# oddly there are empty folders in the SUN RGBD unlabeled dataset
+def delete_empty_folders(fp):
+    for path in os.listdir(fp):
+        folder_path = os.path.join(path, fp)
+        for sub_path in os.listdir(folder_path):
+            to_check = os.path.join(folder_path, sub_path)
+            if is_folder_empty(to_check):
+                os.rmdir(to_check)
 
 """
-test = is_folder_empty("F:/Datasets/SUN_RGBD/SUNRGBDv2Test/11082015/2015-11-08T13.42.28.846-0000006517/")
+delete_empty_folders("F:/Datasets/SUN_RGBD/SUNRGBDv2Test/11082015")
+delete_empty_folders("F:/Datasets/SUN_RGBD/SUNRGBDv2Test/11092015")
+delete_empty_folders("F:/Datasets/SUN_RGBD/SUNRGBDv2Test/11112015")
+delete_empty_folders("F:/Datasets/SUN_RGBD/SUNRGBDv2Test/11122015")
+delete_empty_folders("F:/Datasets/SUN_RGBD/SUNRGBDv2Test/11132015")
+delete_empty_folders("F:/Datasets/SUN_RGBD/SUNRGBDv2Test/black_batch1")
+delete_empty_folders("F:/Datasets/SUN_RGBD/SUNRGBDv2Test/black_batch2")
 debug = "debug"
 """
+
 
 def get_srgbd_unlabeled_paths():
     fps = []
     for outer_fp in os.listdir(unlabeled_pairs_srgbd_path):
         inner_fp = os.path.join(unlabeled_pairs_srgbd_path, outer_fp)
-        if not is_folder_empty(inner_fp):
-            inner_fps = os.listdir(inner_fp)
-            for inner_fp in inner_fps:
-                fps.append(os.path.join(unlabeled_pairs_srgbd_path, outer_fp, inner_fp))
+        inner_fps = os.listdir(inner_fp)
+        for inner_fp in inner_fps:
+            fps.append(os.path.join(unlabeled_pairs_srgbd_path, outer_fp, inner_fp))
     return fps
 
 def filter_unlabeled_nyudv2_pairs(paths):
