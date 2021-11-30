@@ -79,7 +79,7 @@ def train(model, optimizer, lr_scheduler, dataloader, sub_batch_num, num_epochs,
             view_2 = ims[N:]
             with torch.cuda.amp.autocast():  # 16 bit precision = faster and less memory
                 loss = model(view_1, view_2)
-            loss.backward(retain_graph=True)
+            loss.backward()
             loss = loss.item()
             epoch_loss += loss
             iteration_losses.append(loss)
