@@ -14,23 +14,12 @@ im_tuple = (im_height, im_width)
 norm_transform = T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 
 # input shape [3, H, W]
-def npy_random_resized_crop(im, is_depth=False):
-    if is_depth:
-        transform = T.RandomResizedCrop(size=im_tuple, scale=(0.25, 0.6), ratio=(0.75, 1.3333333333333333),
-                                 interpolation=T.InterpolationMode.NEAREST)
-    else:
-        transform = T.RandomResizedCrop(size=im_tuple, scale=(0.25, 0.6), ratio=(0.75, 1.3333333333333333),
-                                 interpolation=T.InterpolationMode.BILINEAR)
-    im = transform(im)
-    return np.asarray(im)
-
-# input shape [3, H, W]
 def random_resized_crop(im, is_depth=False):
     if is_depth:
-        transform = T.RandomResizedCrop(size=im_tuple, scale=(0.25, 0.6), ratio=(0.75, 1.3333333333333333),
+        transform = T.RandomResizedCrop(size=im_tuple, scale=(0.4, 0.8),
                                  interpolation=T.InterpolationMode.NEAREST)
     else:
-        transform = T.RandomResizedCrop(size=im_tuple, scale=(0.25, 0.6), ratio=(0.75, 1.3333333333333333),
+        transform = T.RandomResizedCrop(size=im_tuple, scale=(0.45, 0.75), ratio=(0.75, 1.3333333333333333),
                                  interpolation=T.InterpolationMode.BILINEAR)
     im = transform(im)
     im = np.asarray(im)
@@ -57,17 +46,17 @@ def torch_channels_last_to_first(t):
 
 def random_bool():
     rand = random.random()
-    return rand > 0.5
+    return rand > 0.6
 
 
 def npy_gaussian_blur(im):
-    transform = T.GaussianBlur((9, 9), (6, 7))
+    transform = T.GaussianBlur((3, 3), (1.0, 2.0))
     im = transform(im)
     im = np.asarray(im)
     return im
 
 def gaussian_blur(im):
-    transform = T.GaussianBlur((9, 9), (6, 7))
+    transform = T.GaussianBlur((7, 7), (5.0, 6.0))
     im = transform(im)
     im = np.asarray(im)
     return torch.tensor(im)
@@ -283,23 +272,78 @@ class multi_input_vflip(object):
 # conversion. Finally Gaussian blur and solarization are applied to the patches.
 
 
-# assumes depth image is in range [0, 255]
+class GaussianBlur(object):
+    """blur a single image on CPU"""
+
+    def __init__(self, kernel_size):
+        radias = kernel_size // 2
+        kernel_size = radias * 2 + 1
+        self.blur_h = torch.nn.Conv2d(3, 3, kernel_size=(kernel_size, 1),
+                                stride=1, padding=0, bias=False, groups=3)
+        self.blur_v = torch.nn.Conv2d(3, 3, kernel_size=(1, kernel_size),
+                                stride=1, padding=0, bias=False, groups=3)
+        self.k = kernel_size
+        self.r = radias
+
+        self.blur = torch.nn.Sequential(
+            torch.nn.ReflectionPad2d(radias),
+            self.blur_h,
+            self.blur_v
+        )
+
+        self.pil_to_tensor = T.ToTensor()
+        self.tensor_to_pil = T.ToPILImage()
+
+    def __call__(self, img):
+        img = self.pil_to_tensor(img).unsqueeze(0)
+
+        sigma = np.random.uniform(0.1, 2.0)
+        x = np.arange(-self.r, self.r + 1)
+        x = np.exp(-np.power(x, 2) / (2 * sigma * sigma))
+        x = x / x.sum()
+        x = torch.from_numpy(x).view(1, -1).repeat(3, 1)
+
+        self.blur_h.weight.data.copy_(x.view(3, 1, self.k, 1))
+        self.blur_v.weight.data.copy_(x.view(3, 1, 1, self.k))
+
+        with torch.no_grad():
+            img = self.blur(img)
+            img = img.squeeze()
+
+        img = self.tensor_to_pil(img)
+
+        return img
+
+
+color_jitter = T.ColorJitter(0.8 , 0.8 , 0.8 , 0.0)
+data_transforms = T.Compose([T.RandomResizedCrop(size=224),
+                                          T.RandomHorizontalFlip(),
+                                          T.RandomApply([color_jitter], p=0.8),
+                                          T.RandomGrayscale(p=0.2),
+                                          GaussianBlur(kernel_size=5),
+                                          T.ToTensor()])
+
+
 def depth_transform(depth_im):
+    depth_im = np.expand_dims(depth_im, axis=-1)
+    depth_im = np.repeat(depth_im, 3, axis=-1)
     depth_im = Image.fromarray(depth_im)
-    depth_im = random_resized_crop(depth_im, is_depth=True)
-    depth_im = random_horizontal_flip(depth_im)
-    depth_im = torch.unsqueeze(depth_im, dim=-1).repeat(1, 1, 3)
-    depth_im = torch_channels_first_to_last(depth_im).byte()
-    depth_im = random_equalize(depth_im).float()
-    if random_bool():
-        depth_im = gaussian_blur(depth_im)
-    # final normalization
-    depth_im = depth_im[0, :, :]
-    depth_im = depth_im/255.0
-    depth_im = depth_im - torch.full_like(depth_im, 0.449)
-    depth_im = depth_im * (1/0.226)
+    depth_im = data_transforms(depth_im)
+
+    """
+    # sanity check
+    depth_im *= 255.0
+    depth_im = depth_im.numpy().astype(np.uint8)
+    depth_im = s_utils.channelsFirstToLast(depth_im)
+    s_utils.showImage(depth_im)
+    debug = "debug"
+    """
+    depth_im = depth_im[0]
+    depth_im = depth_im - 0.449  # average of ImageNet channel means
+    depth_im = depth_im / 0.226  # average of ImageNet channels standard deviations
     depth_im = torch.unsqueeze(torch.unsqueeze(depth_im, dim=0), dim=0)
     return depth_im
+
 
 def rgb_transform(rgb_im):
     rgb_im = Image.fromarray(rgb_im)
@@ -313,19 +357,19 @@ def rgb_transform(rgb_im):
     rgb_im = torch.unsqueeze(rgb_im, dim=0)
     return rgb_im
 
+
 """
 # example depth aug
 sample_depth_im = Image.open("F:/Datasets/SUN_RGBD/SUNRGBD/kv2/kinect2data/000009_2014-05-26_14-32-05_260595134347_rgbf000034-resize/depth_bfx/0000034.png")
 sample_depth_im = Image.fromarray(s_utils.normalizeDepthImage(sample_depth_im))
 s_utils.showImage(npy_grayscale2RG(sample_depth_im))
-transformed_depth_im = depth_transform(sample_depth_im).numpy().astype(np.uint8)
-s_utils.showImage(s_utils.channelsFirstToLast(transformed_depth_im))
+depth_transform(np.asarray(sample_depth_im))
 
 sample_depth_im = Image.open("F:/Datasets/SUN_RGBD/SUNRGBD/kv2/kinect2data/000009_2014-05-26_14-32-05_260595134347_rgbf000034-resize/depth_bfx/0000034.png")
 sample_depth_im = Image.fromarray(s_utils.normalizeDepthImage(sample_depth_im))
 s_utils.showImage(npy_grayscale2RG(sample_depth_im))
-transformed_depth_im = depth_transform(sample_depth_im).numpy().astype(np.uint8)
-s_utils.showImage(s_utils.channelsFirstToLast(transformed_depth_im))
+depth_transform(np.asarray(sample_depth_im))
+#s_utils.showImage(s_utils.channelsFirstToLast(transformed_depth_im))
 """
 
 """

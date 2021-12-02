@@ -374,13 +374,13 @@ output = rn_101(im)
 debug = "debug"
 """
 
-def get_grayscale_rn50_backbone(pre_trained=True, with_pooling=False):
+def get_grayscale_rn50_backbone(pre_trained=True, with_pooling=False, dilation_vals=[False, True, True]):
     if not with_pooling:
-        rn_50 = remove_head(resnet50(pretrained=pre_trained, progress=False, dilation_vals=[False, True, True]))
+        rn_50 = remove_head(resnet50(pretrained=pre_trained, progress=False, dilation_vals=dilation_vals))
     else:
-        rn_50 = remove_classification(resnet50(pretrained=pre_trained, progress=False, dilation_vals=[False, True, True]))
+        rn_50 = remove_classification(resnet50(pretrained=pre_trained, progress=False, dilation_vals=dilation_vals))
     rn_50 = list(rn_50.children())
-    new_conv = torch.nn.Conv2d(in_channels=1, out_channels=64, kernel_size=7, stride=(2, 2), padding=(3, 3), bias=False)
+    new_conv = torch.nn.Conv2d(in_channels=1, out_channels=64, kernel_size=7, stride=(2, 2), padding=(3, 3), bias=True)
     if pre_trained:
         old_conv = rn_50[0]
         old_conv_weight = torch.tensor(old_conv.weight.clone().detach().requires_grad_(True))
@@ -389,7 +389,10 @@ def get_grayscale_rn50_backbone(pre_trained=True, with_pooling=False):
         rn_50[0] = new_conv
     else:
         rn_50[0] = new_conv
-    return torch.nn.Sequential(*rn_50)
+    model = torch.nn.Sequential(*rn_50)
+    for param in model.parameters():
+        param.requires_grad = True
+    return model
 
 """
 rn_50_grayscale = get_grayscale_rn50_backbone()

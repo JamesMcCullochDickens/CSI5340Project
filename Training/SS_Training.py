@@ -154,8 +154,6 @@ def visualize_ss_masks(model, dataloader, save_fp, with_depth=False, num_ims=50)
 if __name__ == "__main__":
     torch.backends.cudnn.benchmark = True
 
-    torch.backends.cudnn.benchmark = True
-
     """
     # training
     num_epochs = 0

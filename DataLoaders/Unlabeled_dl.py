@@ -171,14 +171,41 @@ def collate(depth_only, rgb_transform, depth_transform, batch):
         depth_im_t2 = depth_transform(depth_im.copy())
         depth_ims_t1.append(depth_im_t1)
         depth_ims_t2.append(depth_im_t2)
-    rgb_ims_t1.extend(rgb_ims_t2)
-    depth_ims_t1.extend(depth_ims_t2)
-    depth_ims = torch.cat([depth_im for depth_im in depth_ims_t1], dim=0)
     if not depth_only:
-        rgb_ims = torch.cat([rgb_im for rgb_im in rgb_ims_t1], dim=0)
+        rgb_ims = rgb_ims_t1 + rgb_ims_t2
+    depth_ims = depth_ims_t1 + depth_ims_t2
+    depth_ims = torch.cat([depth_im for depth_im in depth_ims], dim=0)
+    if not depth_only:
+        rgb_ims = torch.cat([rgb_im for rgb_im in rgb_ims], dim=0)
         return rgb_ims, depth_ims
     else:
         return depth_ims
+
+
+# 0 means no rotation
+# 1 means horizontal flip
+# 2 means vertical flip
+# 3 horizontal and vertical flip
+
+def rotation_collate(batch):
+    rotated_depth_ims = []
+    batch_size = len(batch)
+    gt_labels = torch.randint(0, 4, batch_size)
+    for index, data in enumerate(batch):
+        rgb_im = data["rgb_im"]
+        if gt_labels[index] == 0:
+            pass
+        elif gt_labels[index] == 1:
+            rgb_im = da_utils.horizontal_flip(rgb_im)
+        elif gt_labels[index] == 2:
+            rgb_im = da_utils.vertical_flip(rgb_im)
+        elif gt_labels[index] == 3:
+            rgb_im = da_utils.horizontal_flip(rgb_im)
+            rgb_im = da_utils.vertical_flip(rgb_im)
+        rotated_depth_ims.append(rgb_im)
+    rotated_depth_ims = torch.cat([rgb_im for rgb_im in rotated_depth_ims], dim=0)
+    return rotated_depth_ims
+
 
 
 def get_unlabeled_pair_dl(batch_size, num_workers, depth_only, rgb_transform=None, depth_transform=None):
@@ -192,6 +219,7 @@ def get_unlabeled_pair_dl(batch_size, num_workers, depth_only, rgb_transform=Non
     dl = torch.utils.data.DataLoader(it, batch_size=batch_size, num_workers=num_workers, pin_memory=True,
                                      collate_fn=coll, persistent_workers=False, drop_last=True)
     return dl
+
 
 """
 # testing

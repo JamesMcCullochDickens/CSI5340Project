@@ -5,34 +5,35 @@ import torch.nn.functional as F
 import Backbones.ResNet as ResNet
 
 class BYOL(nn.Module):
-    def __init__(self, input_dim, backbone=None, projection_dim=256, hidden_dim=4096, target_decay=0.99):
+    def __init__(self, input_dim=2048, backbone=None, projection_dim=256, hidden_dim=4096, target_decay=0.9995):
         super(BYOL, self).__init__()
         self.input_dim = input_dim
-        if backbone is not None:
-            self.online_backbone = backbone
-        else: # a default backbone
-            self.online_backbone = ResNet.remove_head(ResNet.resnet50(pretrained=False, dilation_vals=[False, True, True]))
         self.projection_dim = projection_dim
         self.hidden_dim = hidden_dim
         self.target_decay = target_decay
+
+        # online backbone, predictor and projector
+        if backbone is not None:
+            self.online_backbone = backbone
+        else: # a default backbone
+            self.online_backbone = ResNet.remove_head(ResNet.resnet50(pretrained=True, dilation_vals=[False, True, True]))
         self.online_projector = nn.Sequential(nn.Linear(self.input_dim, self.hidden_dim),
                                  nn.BatchNorm1d(self.hidden_dim),
                                  nn.ReLU(inplace=True),
                                  nn.Linear(hidden_dim, projection_dim))
-        self.target_projector = nn.Sequential(nn.Linear(self.input_dim, self.hidden_dim),
-                                       nn.BatchNorm1d(self.hidden_dim),
-                                       nn.ReLU(inplace=True),
-                                       nn.Linear(hidden_dim, projection_dim))
         self.predictor = nn.Sequential(nn.Linear(self.projection_dim, self.hidden_dim),
                                  nn.BatchNorm1d(self.hidden_dim),
                                  nn.ReLU(inplace=True),
                                  nn.Linear(hidden_dim, projection_dim))
-        self.target_backbone = copy.deepcopy(self.online_backbone)
 
-        for param in self.target_backbone:
+        # target backbone and projector
+        self.target_backbone = copy.deepcopy(self.online_backbone)
+        self.target_projector = copy.deepcopy(self.online_projector)
+
+        for param in self.target_backbone.parameters():
             param.requires_grad = False
 
-        for param in self.target_projector:
+        for param in self.target_projector.parameters():
             param.requires_grad = False
 
     def forward(self, view1, view2):
@@ -53,8 +54,6 @@ class BYOL(nn.Module):
             view2_target = self.target_backbone(view2)
             view2_target = torch.flatten(view2_target, 1)
             view2_target = self.target_projector(view2_target)
-            view1_target.detach_()
-            view2_target.detach_()
 
         loss = self.loss(v1, view2_target, v2, view1_target)
         return loss

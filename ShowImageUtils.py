@@ -116,7 +116,7 @@ def showImageWithBoundingBoxes(im, bounding_boxes, labels=None, confidence_score
 def showImage(im):
     plt.imshow(im)
     plt.draw()
-    plt.pause(2)
+    plt.pause(3)
     plt.close()
 
 def showImageWithLabel(image, label):
