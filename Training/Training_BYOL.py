@@ -9,6 +9,8 @@ import logging
 import Models.BYOL as byol
 logging.captureWarnings(True)
 import time
+from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
+
 
 saved_models_path = os.path.join(os.getcwd(), "Trained_Models")
 saved_plots_path = os.path.join(os.getcwd(), "Saved_Plots")
@@ -53,6 +55,7 @@ def plot_train_dict(train_dict, model_name, save_fp):
 
 def train(model, optimizer, lr_scheduler, dataloader, sub_batch_num, num_epochs, save_path, load_path):
     torch.backends.cudnn.benchmark = True
+    scaler = torch.cuda.amp.GradScaler()
     model.train()
     model.cuda()
     if load_path is not None:
@@ -78,19 +81,22 @@ def train(model, optimizer, lr_scheduler, dataloader, sub_batch_num, num_epochs,
             view_2 = ims[N:]
             with torch.cuda.amp.autocast():  # 16 bit precision = faster and less memory
                 loss = model(view_1, view_2)
-            loss *= (1/sub_batch_num)
-            loss.backward()
+            #loss *= (1/sub_batch_num)
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
             loss = loss.item()
-            batch_loss += loss
-            #optimizer.step()
-            #optimizer.zero_grad(set_to_none=True)
+            epoch_loss += loss
+            iteration_losses.append(loss)
 
+            """
             if batch_num % sub_batch_num == 0 and batch_num != 0:
                 iteration_losses.append(batch_loss)
                 epoch_loss += batch_loss
                 batch_loss = 0.0
                 optimizer.step()
                 optimizer.zero_grad(set_to_none=True)
+            """
 
         lr_scheduler.step()
         loss_dict["epoch_losses"].extend([epoch_loss])
@@ -107,8 +113,8 @@ if __name__ == "__main__":
     #load_path = os.path.join(saved_models_path, model_name)
     dataloader = dl.get_unlabeled_pair_dl(batch_size=64, num_workers=8, depth_only=True)
     rn_50 = rn.get_grayscale_rn50_backbone(pre_trained=False, with_pooling=True)
-    model = byol.BYOL(backbone=rn_50, projection_dim=128, hidden_dim=512)
-    optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), momentum=0.9, lr=0.03, weight_decay=0.00004)
-    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.9, verbose=True)
+    model = byol.BYOL(backbone=rn_50, projection_dim=256, hidden_dim=4096)
+    optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=0.2, weight_decay=1.5e-6)
+    lr_scheduler = LinearWarmupCosineAnnealingLR(optimizer, warmup_epochs=10, max_epochs=1000)
     train_dict = train(model, optimizer, lr_scheduler, dataloader, sub_batch_num, num_epochs, save_path, load_path=None)
     plot_train_dict(train_dict, model_name, saved_plots_path)

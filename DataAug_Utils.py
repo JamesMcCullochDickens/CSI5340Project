@@ -338,6 +338,7 @@ def depth_transform(depth_im):
     s_utils.showImage(depth_im)
     debug = "debug"
     """
+
     depth_im = depth_im[0]
     depth_im = depth_im - 0.449  # average of ImageNet channel means
     depth_im = depth_im / 0.226  # average of ImageNet channels standard deviations

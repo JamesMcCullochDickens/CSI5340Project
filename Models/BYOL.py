@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import Backbones.ResNet as ResNet
 
 class BYOL(nn.Module):
-    def __init__(self, input_dim=2048, backbone=None, projection_dim=256, hidden_dim=4096, target_decay=0.9995):
+    def __init__(self, input_dim=2048, backbone=None, projection_dim=256, hidden_dim=4096, target_decay=0.99):
         super(BYOL, self).__init__()
         self.input_dim = input_dim
         self.projection_dim = projection_dim
