@@ -8,6 +8,7 @@ import GenericDataloader as g_dl
 import ShowImageUtils as s_utils
 from functools import partial
 import DataAug_Utils as da_utils
+import CacheDictUtils as cd_utils
 
 unlabeled_path = "unlabelled_data"
 NYUDv2_outer_path = PathGetter.get_fp("NYUDv2")
@@ -79,6 +80,9 @@ all_fps = get_all_fps()
 debug = "debug"
 """
 
+def requires_normalization(im):
+    return (im > 255.0).any() > 0
+
 
 def unlabeled_iterator(start_value, skip_value, batch_size, depth_only=False, permutation=None, debug=False):
     all_fps = get_all_fps()
@@ -95,7 +99,6 @@ def unlabeled_iterator(start_value, skip_value, batch_size, depth_only=False, pe
         if "unlabelled_pairs" in path:
             rgb_path = path
             depth_path = path[0:-7]+"inpainted_depth.png"
-            requires_normalization = False
 
         # sun rgbd unlabeled pairs
         elif "SUNRGBDv2Test" in path:
@@ -103,7 +106,6 @@ def unlabeled_iterator(start_value, skip_value, batch_size, depth_only=False, pe
             rgb_path = os.path.join(rgb_outer_path, os.listdir(rgb_outer_path)[0])
             depth_outer_path = os.path.join(path, "depth")
             depth_path = os.path.join(depth_outer_path, os.listdir(depth_outer_path)[0])
-            requires_normalization = True
 
         # sun rgbd trainval pairs
         else:
@@ -111,7 +113,6 @@ def unlabeled_iterator(start_value, skip_value, batch_size, depth_only=False, pe
             rgb_path = os.path.join(rgb_outer_path, os.listdir(rgb_outer_path)[0])
             depth_outer_path = os.path.join(path, "depth_bfx")
             depth_path = os.path.join(depth_outer_path, os.listdir(depth_outer_path)[0])
-            requires_normalization = True
 
         if not depth_only:
             rgb_im = Image.open(rgb_path)
@@ -122,10 +123,16 @@ def unlabeled_iterator(start_value, skip_value, batch_size, depth_only=False, pe
         depth_im = Image.open(depth_path)
         depth_im = depth_im.resize((600, 800), resample=Image.NEAREST)
         depth_im = np.asarray(depth_im)
-        if requires_normalization:
+        if np.all(depth_im==0): # some depth images in the SUN RGBD TEST are totally black, i.e. depth values all 0
+            continue
+        if len(depth_im.shape) == 2:
+            depth_im = np.expand_dims(depth_im, axis=-1)
+            depth_im = np.repeat(depth_im, 3, axis=-1)
+        if depth_im.shape[-1] == 4: # for the odd case where PIL gives a transparency channel
+            depth_im = depth_im[0:3, :, :]
+        if requires_normalization(depth_im):
             depth_im = s_utils.normalizeDepthImage(depth_im)
-        else:
-            depth_im = depth_im.astype(np.uint8)
+
         raw_data["depth_im"] = depth_im
 
         """
@@ -136,6 +143,62 @@ def unlabeled_iterator(start_value, skip_value, batch_size, depth_only=False, pe
         """
 
         yield raw_data
+
+
+def generate_rotation_vals():
+    test_files = srgb_dl.get_test_train_split()["test_paths"]
+    rotation_vals = np.random.randint(0, 4, len(test_files)).tolist()
+    write_fp = "./rotation_gts"
+    gt_dict = {"gt_rotations": rotation_vals}
+    cd_utils.writeReadableCachedDict(write_fp, gt_dict)
+
+def get_gt_rotation_vals():
+    fp = "C:/Users/james/PycharmProjects/CSI5340Project/DataLoaders/rotation_gts"
+    return cd_utils.readReadableCachedDict(fp)["gt_rotations"]
+
+
+
+def labeled_rotation_iterator(depth_only):
+    test_files = srgb_dl.get_test_train_split()["test_paths"]
+    rotations = get_gt_rotation_vals()
+    for index, path in enumerate(test_files):
+        raw_data = {}
+        rotation_val = rotations[index]
+        if not depth_only:
+            rgb_outer_path = os.path.join(path, "image")
+            rgb_path = os.path.join(rgb_outer_path, os.listdir(rgb_outer_path)[0])
+        depth_outer_path = os.path.join(path, "depth_bfx")
+        depth_path = os.path.join(depth_outer_path, os.listdir(depth_outer_path)[0])
+        if not depth_only:
+            rgb_im = Image.open(rgb_path)
+            rgb_im = rgb_im.resize((600, 800), resample=Image.BILINEAR)
+            rgb_im = np.asarray(rgb_im, dtype=np.uint8)
+            raw_data["rgb_im"] = rgb_im
+
+        depth_im = Image.open(depth_path)
+        depth_im = depth_im.resize((600, 800), resample=Image.NEAREST)
+        depth_im = np.asarray(depth_im)
+        if np.all(depth_im == 0):  # some depth images in the SUN RGBD TEST are totally black, i.e. depth values all 0
+            continue
+        if len(depth_im.shape) == 2:
+            depth_im = np.expand_dims(depth_im, axis=-1)
+            depth_im = np.repeat(depth_im, 3, axis=-1)
+        if depth_im.shape[-1] == 4:  # for the odd case where PIL gives a transparency channel
+            depth_im = depth_im[0:3, :, :]
+        if requires_normalization(depth_im):
+            depth_im = s_utils.normalizeDepthImage(depth_im)
+
+        raw_data["depth_im"] = depth_im
+        raw_data["rotation_val"] = rotation_val
+        yield raw_data
+
+class rotation_test_dataset(torch.utils.data.IterableDataset):
+    def __init__(self, depth_only=False):
+        super(rotation_test_dataset).__init__()
+        self.depth_only = depth_only
+    def __iter__(self):
+        return iter(labeled_rotation_iterator(self.depth_only))
+
 
 class unlabeled_iterable_dataset(torch.utils.data.IterableDataset):
     def __init__(self, batch_size, depth_only=False, permutation=None):
@@ -174,6 +237,32 @@ def collate(depth_only, rgb_transform, depth_transform, batch):
     if not depth_only:
         rgb_ims = rgb_ims_t1 + rgb_ims_t2
     depth_ims = depth_ims_t1 + depth_ims_t2
+
+    """
+    # sanity check
+    batch_size = int(len(depth_ims)/2)
+    for index, im in enumerate(depth_ims):
+        if index >= batch_size:
+            break
+        im = im[0]
+        other_im = depth_ims[index+batch_size][0]
+        im = im + 0.449
+        im = im * 0.226
+        im = im * 255.0
+        im = im.repeat(3, 1, 1)
+        im = im.numpy().astype(np.uint8)
+        im = s_utils.channelsFirstToLast(im)
+        other_im = other_im + 0.449
+        other_im = other_im * 0.226
+        other_im = other_im * 255.0
+        other_im = other_im.repeat(3, 1, 1)
+        other_im = other_im.numpy().astype(np.uint8)
+        other_im = s_utils.channelsFirstToLast(other_im)
+        to_display = s_utils.concatenateImagesHorizontally([im, other_im])
+        s_utils.showImage(to_display)
+    """
+
+
     depth_ims = torch.cat([depth_im for depth_im in depth_ims], dim=0)
     if not depth_only:
         rgb_ims = torch.cat([rgb_im for rgb_im in rgb_ims], dim=0)
@@ -190,23 +279,59 @@ def collate(depth_only, rgb_transform, depth_transform, batch):
 def rotation_collate(batch):
     rotated_depth_ims = []
     batch_size = len(batch)
-    gt_labels = torch.randint(0, 4, batch_size)
+    gt_labels = torch.randint(0, 4, (batch_size,))
     for index, data in enumerate(batch):
-        rgb_im = data["rgb_im"]
+        depth_im = data["depth_im"]
         if gt_labels[index] == 0:
-            pass
+            depth_im = torch.tensor(depth_im)
         elif gt_labels[index] == 1:
-            rgb_im = da_utils.horizontal_flip(rgb_im)
+            depth_im = da_utils.horizontal_flip(depth_im)
         elif gt_labels[index] == 2:
-            rgb_im = da_utils.vertical_flip(rgb_im)
+            depth_im = da_utils.vertical_flip(depth_im)
         elif gt_labels[index] == 3:
-            rgb_im = da_utils.horizontal_flip(rgb_im)
-            rgb_im = da_utils.vertical_flip(rgb_im)
-        rotated_depth_ims.append(rgb_im)
-    rotated_depth_ims = torch.cat([rgb_im for rgb_im in rotated_depth_ims], dim=0)
-    return rotated_depth_ims
+            depth_im = da_utils.horizontal_flip(depth_im).numpy().astype(np.uint8)
+            depth_im = da_utils.vertical_flip(depth_im)
+        depth_im = depth_im[:, :, 0]
+        depth_im = depth_im*(1/255)
+        depth_im = depth_im - 0.449
+        depth_im = depth_im / 0.226
+        rotated_depth_ims.append(torch.unsqueeze(torch.unsqueeze(depth_im, dim=0), dim=0))
+    rotated_depth_ims = torch.cat([depth_im for depth_im in rotated_depth_ims], dim=0)
+    gt_labels = torch.tensor(gt_labels, dtype=torch.long)
+    return rotated_depth_ims, gt_labels
 
+# TODO add code for rgb ims too
+def rotation_collate_test(depth_only, batch):
+    rotated_depth_ims = []
+    gt_labels = []
+    for index, data in enumerate(batch):
+        depth_im = data["depth_im"]
+        rotation_label = data["rotation_val"]
+        gt_labels.append(rotation_label)
+        if rotation_label == 0:
+            depth_im = torch.tensor(depth_im)
+        elif rotation_label == 1:
+            depth_im = da_utils.horizontal_flip(depth_im)
+        elif rotation_label == 2:
+            depth_im = da_utils.vertical_flip(depth_im)
+        elif rotation_label == 3:
+            depth_im = da_utils.horizontal_flip(depth_im).numpy().astype(np.uint8)
+            depth_im = da_utils.vertical_flip(depth_im)
+        depth_im = depth_im[:, :, 0]
+        depth_im = depth_im * (1 / 255)
+        depth_im = depth_im - 0.449
+        depth_im = depth_im / 0.226
+        rotated_depth_ims.append(torch.unsqueeze(torch.unsqueeze(depth_im, dim=0), dim=0))
+    rotated_depth_ims = torch.cat([depth_im for depth_im in rotated_depth_ims], dim=0)
+    gt_labels = torch.tensor(gt_labels, dtype=torch.long)
+    return rotated_depth_ims, gt_labels
 
+def get_test_rotation_dl(batch_size, num_workers, depth_only):
+    coll = partial(rotation_collate_test, depth_only)
+    it = rotation_test_dataset(depth_only)
+    dl = torch.utils.data.DataLoader(it, batch_size=batch_size, num_workers=num_workers, pin_memory=True,
+                                     collate_fn=coll, persistent_workers=False, drop_last=True)
+    return dl
 
 def get_unlabeled_pair_dl(batch_size, num_workers, depth_only, rgb_transform=None, depth_transform=None):
     if rgb_transform is None:
@@ -220,12 +345,21 @@ def get_unlabeled_pair_dl(batch_size, num_workers, depth_only, rgb_transform=Non
                                      collate_fn=coll, persistent_workers=False, drop_last=True)
     return dl
 
+def get_unlabeled_rotation_dl(batch_size, num_workers, depth_only):
+    coll = rotation_collate
+    permutation = np.random.permutation(num_pairs).tolist()
+    it = unlabeled_iterable_dataset(batch_size, depth_only, permutation=permutation)
+    dl = torch.utils.data.DataLoader(it, batch_size=batch_size, num_workers=num_workers, pin_memory=True,
+                                     collate_fn=coll, persistent_workers=False, drop_last=True)
+    return dl
+
+
 
 """
 # testing
 rgb_transform = da_utils.rgb_transform
 depth_transform = da_utils.depth_transform
-data_it = get_unlabeled_pair_dl(10, 0, False, rgb_transform, depth_transform)
+data_it = get_unlabeled_pair_dl(10, 0, True, rgb_transform, depth_transform)
 for data in data_it:
     debug = "debug"
 """

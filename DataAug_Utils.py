@@ -138,6 +138,7 @@ def npy_color_jitter(im):
     return im
 
 def horizontal_flip(im):
+    im = Image.fromarray(im)
     transform = T.RandomHorizontalFlip(p=1)
     im = transform(im)
     im = np.asarray(im)
@@ -150,6 +151,7 @@ def npy_horizontal_flip(im):
     return im
 
 def random_horizontal_flip(im):
+    im = Image.fromarray(im)
     transform = T.RandomHorizontalFlip(p=0.5)
     im = transform(im)
     im = np.asarray(im)
@@ -162,6 +164,7 @@ def npy_random_horizontal_flip(im):
     return im
 
 def vertical_flip(im):
+    im = Image.fromarray(im)
     transform = T.RandomVerticalFlip(p=1)
     im = transform(im)
     im = np.asarray(im)
@@ -315,18 +318,15 @@ class GaussianBlur(object):
         return img
 
 
-color_jitter = T.ColorJitter(0.8 , 0.8 , 0.8 , 0.0)
-data_transforms = T.Compose([T.RandomResizedCrop(size=224),
-                                          T.RandomHorizontalFlip(),
-                                          T.RandomApply([color_jitter], p=0.8),
-                                          T.RandomGrayscale(p=0.2),
-                                          GaussianBlur(kernel_size=5),
+color_jitter = T.ColorJitter(0.2, 0.0, 0.2, 0.0)
+data_transforms = T.Compose([T.RandomResizedCrop(size=224, scale=(0.55, 0.8)),
+                                          T.RandomHorizontalFlip(p=0.3),
+                                          T.RandomApply([color_jitter], p=0.7),
+                                          GaussianBlur(kernel_size=7),
                                           T.ToTensor()])
 
-
+# expects input to be channels LAST, 3 in particular [H, W, 3]
 def depth_transform(depth_im):
-    depth_im = np.expand_dims(depth_im, axis=-1)
-    depth_im = np.repeat(depth_im, 3, axis=-1)
     depth_im = Image.fromarray(depth_im)
     depth_im = data_transforms(depth_im)
 
@@ -361,17 +361,13 @@ def rgb_transform(rgb_im):
 
 """
 # example depth aug
-sample_depth_im = Image.open("F:/Datasets/SUN_RGBD/SUNRGBD/kv2/kinect2data/000009_2014-05-26_14-32-05_260595134347_rgbf000034-resize/depth_bfx/0000034.png")
-sample_depth_im = Image.fromarray(s_utils.normalizeDepthImage(sample_depth_im))
+sample_depth_im = Image.open("C:/Users/james/PycharmProjects/CSI5340Project/img.png")
+sample_depth_im = np.asarray(sample_depth_im)
+#sample_depth_im = s_utils.normalizeDepthImage(sample_depth_im)
 s_utils.showImage(npy_grayscale2RG(sample_depth_im))
-depth_transform(np.asarray(sample_depth_im))
-
-sample_depth_im = Image.open("F:/Datasets/SUN_RGBD/SUNRGBD/kv2/kinect2data/000009_2014-05-26_14-32-05_260595134347_rgbf000034-resize/depth_bfx/0000034.png")
-sample_depth_im = Image.fromarray(s_utils.normalizeDepthImage(sample_depth_im))
-s_utils.showImage(npy_grayscale2RG(sample_depth_im))
-depth_transform(np.asarray(sample_depth_im))
-#s_utils.showImage(s_utils.channelsFirstToLast(transformed_depth_im))
+depth_transform(sample_depth_im)
 """
+
 
 """
 # example rgb aug

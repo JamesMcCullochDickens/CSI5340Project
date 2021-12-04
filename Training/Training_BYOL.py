@@ -6,10 +6,12 @@ import PlotUtils.PlotUtils as plot_utils
 import DataLoaders.Unlabeled_dl as dl
 import Backbones.ResNet as rn
 import logging
+import Models.SimSiam as sim_siam
 import Models.BYOL as byol
 logging.captureWarnings(True)
 import time
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
+import Visualization.VisualizeConvFilters as visualize_filters
 
 
 saved_models_path = os.path.join(os.getcwd(), "Trained_Models")
@@ -70,7 +72,6 @@ def train(model, optimizer, lr_scheduler, dataloader, sub_batch_num, num_epochs,
     iteration_losses = []
     for epoch_num in range(epoch_min, num_epochs + 1):
         epoch_loss = 0.0
-        batch_loss = 0.0
         for batch_num, data in enumerate(dataloader):
             if batch_num % 50 == 0 and batch_num != 0:
                 print("Batch num " + str(batch_num))
@@ -81,40 +82,41 @@ def train(model, optimizer, lr_scheduler, dataloader, sub_batch_num, num_epochs,
             view_2 = ims[N:]
             with torch.cuda.amp.autocast():  # 16 bit precision = faster and less memory
                 loss = model(view_1, view_2)
-            #loss *= (1/sub_batch_num)
-            scaler.scale(loss).backward()
-            scaler.step(optimizer)
-            scaler.update()
+            loss.backward()
             loss = loss.item()
+            optimizer.step()
+            optimizer.zero_grad(set_to_none=True)
             epoch_loss += loss
             iteration_losses.append(loss)
-
-            """
-            if batch_num % sub_batch_num == 0 and batch_num != 0:
-                iteration_losses.append(batch_loss)
-                epoch_loss += batch_loss
-                batch_loss = 0.0
-                optimizer.step()
-                optimizer.zero_grad(set_to_none=True)
-            """
-
-        lr_scheduler.step()
+        if lr_scheduler is not None:
+            lr_scheduler.step()
         loss_dict["epoch_losses"].extend([epoch_loss])
         loss_dict["iteration_losses"].extend(iteration_losses)
-        print("\nFinished training epoch " + str(epoch_num) + " with loss: " + str(round(epoch_loss, 2)))
+        print("\nFinished training epoch " + str(epoch_num) + " with average loss: " + str(round(epoch_loss/batch_num, 3)))
         saveModel(epoch_num, model, optimizer, lr_scheduler, loss_dict, save_path)
     return {"epoch_losses": loss_dict["epoch_losses"], "iteration_losses": loss_dict["iteration_losses"]}
 
 if __name__ == "__main__":
-    num_epochs = 300
-    sub_batch_num = 8
-    model_name = "BYOL_Exp1"
+    num_epochs = 20
+    sub_batch_num = 1
+    model_name = "Sim_Siam_Exp2"
     save_path = os.path.join(saved_models_path, model_name)
-    #load_path = os.path.join(saved_models_path, model_name)
-    dataloader = dl.get_unlabeled_pair_dl(batch_size=64, num_workers=8, depth_only=True)
-    rn_50 = rn.get_grayscale_rn50_backbone(pre_trained=False, with_pooling=True)
-    model = byol.BYOL(backbone=rn_50, projection_dim=256, hidden_dim=4096)
-    optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=0.2, weight_decay=1.5e-6)
-    lr_scheduler = LinearWarmupCosineAnnealingLR(optimizer, warmup_epochs=10, max_epochs=1000)
+    load_path = os.path.join(saved_models_path, model_name)
+    dataloader = dl.get_unlabeled_pair_dl(batch_size=64, num_workers=0, depth_only=True)
+    rn_50 = rn.get_grayscale_rn50_backbone(pre_trained=True, with_pooling=True)
+    rn_50.output_dim = 2048
+    model = sim_siam.SimSiam(backbone=rn_50)
+
+
+    optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=0.0125, momentum=0.9, weight_decay=0.0001)
+    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1)
     train_dict = train(model, optimizer, lr_scheduler, dataloader, sub_batch_num, num_epochs, save_path, load_path=None)
     plot_train_dict(train_dict, model_name, saved_plots_path)
+
+
+    model = loadModel(model, None, None, save_path, model_only=True)
+    visualize_filters.visualize_conv_filters_backbone(model)
+
+
+
+
