@@ -1,0 +1,204 @@
+{
+    "person": {
+        "count": 33089151,
+        "correct": 29074149,
+        "accuracy": 0.8786610753476268
+    },
+    "bicycle": {
+        "count": 16497437,
+        "correct": 15376409,
+        "accuracy": 0.9320483539352203
+    },
+    "car": {
+        "count": 9927628,
+        "correct": 7244930,
+        "accuracy": 0.7297745241864421
+    },
+    "motorcycle": {
+        "count": 7492909,
+        "correct": 6092343,
+        "accuracy": 0.8130811411162207
+    },
+    "airplane": {
+        "count": 6656344,
+        "correct": 4652354,
+        "accuracy": 0.6989353314672438
+    },
+    "bus": {
+        "count": 5719877,
+        "correct": 4218590,
+        "accuracy": 0.7375315937737822
+    },
+    "train": {
+        "count": 4317152,
+        "correct": 2125425,
+        "accuracy": 0.4923210950181972
+    },
+    "truck": {
+        "count": 3651190,
+        "correct": 1602067,
+        "accuracy": 0.438779411643875
+    },
+    "boat": {
+        "count": 3085564,
+        "correct": 1795845,
+        "accuracy": 0.5820151518490623
+    },
+    "traffic light": {
+        "count": 3168231,
+        "correct": 1792072,
+        "accuracy": 0.5656380484882573
+    },
+    "fire hydrant": {
+        "count": 3332525,
+        "correct": 2370078,
+        "accuracy": 0.7111958649972618
+    },
+    "stop sign": {
+        "count": 2962838,
+        "correct": 1970312,
+        "accuracy": 0.6650083467270232
+    },
+    "parking meter": {
+        "count": 2738865,
+        "correct": 2020961,
+        "accuracy": 0.7378826630739376
+    },
+    "bench": {
+        "count": 2310724,
+        "correct": 514914,
+        "accuracy": 0.22283665206229736
+    },
+    "bird": {
+        "count": 1260371,
+        "correct": 166291,
+        "accuracy": 0.131938135675924
+    },
+    "cat": {
+        "count": 1872652,
+        "correct": 916015,
+        "accuracy": 0.48915388443768515
+    },
+    "dog": {
+        "count": 1659202,
+        "correct": 942853,
+        "accuracy": 0.5682569090442273
+    },
+    "horse": {
+        "count": 1685586,
+        "correct": 1046904,
+        "accuracy": 0.6210920119175171
+    },
+    "sheep": {
+        "count": 1356419,
+        "correct": 416033,
+        "accuracy": 0.30671422325992187
+    },
+    "cow": {
+        "count": 1548108,
+        "correct": 547902,
+        "accuracy": 0.3539171685696347
+    },
+    "elephant": {
+        "count": 979000,
+        "correct": 245159,
+        "accuracy": 0.25041777323799796
+    },
+    "bear": {
+        "count": 1165673,
+        "correct": 675892,
+        "accuracy": 0.5798298493659886
+    },
+    "zebra": {
+        "count": 1108286,
+        "correct": 367259,
+        "accuracy": 0.33137565574229033
+    },
+    "giraffe": {
+        "count": 1165062,
+        "correct": 453763,
+        "accuracy": 0.3894754098923491
+    },
+    "backpack": {
+        "count": 734787,
+        "correct": 481059,
+        "accuracy": 0.654691767818429
+    },
+    "umbrella": {
+        "count": 768032,
+        "correct": 304783,
+        "accuracy": 0.396836329736261
+    },
+    "handbag": {
+        "count": 715580,
+        "correct": 358011,
+        "accuracy": 0.5003088403812292
+    },
+    "tie": {
+        "count": 584058,
+        "correct": 329626,
+        "accuracy": 0.5643720315448123
+    },
+    "suitcase": {
+        "count": 451795,
+        "correct": 78043,
+        "accuracy": 0.17273984882524154
+    },
+    "frisbee": {
+        "count": 652503,
+        "correct": 400291,
+        "accuracy": 0.6134699763832503
+    },
+    "skis": {
+        "count": 531095,
+        "correct": 416233,
+        "accuracy": 0.7837260753725793
+    },
+    "snowboard": {
+        "count": 588297,
+        "correct": 235275,
+        "accuracy": 0.39992554781003475
+    },
+    "sports ball": {
+        "count": 462846,
+        "correct": 419813,
+        "accuracy": 0.9070252308543231
+    },
+    "kite": {
+        "count": 560565,
+        "correct": 316112,
+        "accuracy": 0.563916762552068
+    },
+    "baseball bat": {
+        "count": 507853,
+        "correct": 231572,
+        "accuracy": 0.45598234134680704
+    },
+    "baseball glove": {
+        "count": 553053,
+        "correct": 337344,
+        "accuracy": 0.609966856702703
+    },
+    "skateboard": {
+        "count": 479482,
+        "correct": 53729,
+        "accuracy": 0.11205634413804898
+    },
+    "surfboard": {
+        "count": 2697777,
+        "correct": 814933,
+        "accuracy": 0.30207574606796633
+    },
+    "tennis racket": {
+        "count": 3617095,
+        "correct": 558686,
+        "accuracy": 0.1544570988597203
+    },
+    "bottle": {
+        "count": 8668720,
+        "correct": 4281457,
+        "accuracy": 0.4938972535737687
+    },
+    "overall_accuracy": 0.6810255929601705,
+    "average_accuracy": 0.5228332081699307
+}

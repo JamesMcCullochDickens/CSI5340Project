@@ -1,0 +1,244 @@
+{
+    "person": {
+        "intersection": 29074149,
+        "union": 39448962,
+        "total_count": 33089151,
+        "mean_IU": 0.737
+    },
+    "bicycle": {
+        "intersection": 15376409,
+        "union": 18891731,
+        "total_count": 16497437,
+        "mean_IU": 0.814
+    },
+    "car": {
+        "intersection": 7244930,
+        "union": 13332017,
+        "total_count": 9927628,
+        "mean_IU": 0.543
+    },
+    "motorcycle": {
+        "intersection": 6092343,
+        "union": 9883078,
+        "total_count": 7492909,
+        "mean_IU": 0.616
+    },
+    "airplane": {
+        "intersection": 4652354,
+        "union": 7925765,
+        "total_count": 6656344,
+        "mean_IU": 0.587
+    },
+    "bus": {
+        "intersection": 4218590,
+        "union": 7419581,
+        "total_count": 5719877,
+        "mean_IU": 0.569
+    },
+    "train": {
+        "intersection": 2125425,
+        "union": 5274682,
+        "total_count": 4317152,
+        "mean_IU": 0.403
+    },
+    "truck": {
+        "intersection": 1602067,
+        "union": 5197789,
+        "total_count": 3651190,
+        "mean_IU": 0.308
+    },
+    "boat": {
+        "intersection": 1795845,
+        "union": 4172832,
+        "total_count": 3085564,
+        "mean_IU": 0.43
+    },
+    "traffic light": {
+        "intersection": 1792072,
+        "union": 4354182,
+        "total_count": 3168231,
+        "mean_IU": 0.412
+    },
+    "fire hydrant": {
+        "intersection": 2370078,
+        "union": 4386608,
+        "total_count": 3332525,
+        "mean_IU": 0.54
+    },
+    "stop sign": {
+        "intersection": 1970312,
+        "union": 3617272,
+        "total_count": 2962838,
+        "mean_IU": 0.545
+    },
+    "parking meter": {
+        "intersection": 2020961,
+        "union": 3891200,
+        "total_count": 2738865,
+        "mean_IU": 0.519
+    },
+    "bench": {
+        "intersection": 514914,
+        "union": 2761713,
+        "total_count": 2310724,
+        "mean_IU": 0.186
+    },
+    "bird": {
+        "intersection": 166291,
+        "union": 1938433,
+        "total_count": 1260371,
+        "mean_IU": 0.086
+    },
+    "cat": {
+        "intersection": 916015,
+        "union": 2159162,
+        "total_count": 1872652,
+        "mean_IU": 0.424
+    },
+    "dog": {
+        "intersection": 942853,
+        "union": 2208611,
+        "total_count": 1659202,
+        "mean_IU": 0.427
+    },
+    "horse": {
+        "intersection": 1046904,
+        "union": 2683247,
+        "total_count": 1685586,
+        "mean_IU": 0.39
+    },
+    "sheep": {
+        "intersection": 416033,
+        "union": 1660476,
+        "total_count": 1356419,
+        "mean_IU": 0.251
+    },
+    "cow": {
+        "intersection": 547902,
+        "union": 1953642,
+        "total_count": 1548108,
+        "mean_IU": 0.28
+    },
+    "elephant": {
+        "intersection": 245159,
+        "union": 1504771,
+        "total_count": 979000,
+        "mean_IU": 0.163
+    },
+    "bear": {
+        "intersection": 675892,
+        "union": 1386432,
+        "total_count": 1165673,
+        "mean_IU": 0.488
+    },
+    "zebra": {
+        "intersection": 367259,
+        "union": 1413045,
+        "total_count": 1108286,
+        "mean_IU": 0.26
+    },
+    "giraffe": {
+        "intersection": 453763,
+        "union": 1372273,
+        "total_count": 1165062,
+        "mean_IU": 0.331
+    },
+    "backpack": {
+        "intersection": 481059,
+        "union": 993422,
+        "total_count": 734787,
+        "mean_IU": 0.484
+    },
+    "umbrella": {
+        "intersection": 304783,
+        "union": 1062579,
+        "total_count": 768032,
+        "mean_IU": 0.287
+    },
+    "handbag": {
+        "intersection": 358011,
+        "union": 983379,
+        "total_count": 715580,
+        "mean_IU": 0.364
+    },
+    "tie": {
+        "intersection": 329626,
+        "union": 1022654,
+        "total_count": 584058,
+        "mean_IU": 0.322
+    },
+    "suitcase": {
+        "intersection": 78043,
+        "union": 713402,
+        "total_count": 451795,
+        "mean_IU": 0.109
+    },
+    "frisbee": {
+        "intersection": 400291,
+        "union": 721653,
+        "total_count": 652503,
+        "mean_IU": 0.555
+    },
+    "skis": {
+        "intersection": 416233,
+        "union": 580347,
+        "total_count": 531095,
+        "mean_IU": 0.717
+    },
+    "snowboard": {
+        "intersection": 235275,
+        "union": 679954,
+        "total_count": 588297,
+        "mean_IU": 0.346
+    },
+    "sports ball": {
+        "intersection": 419813,
+        "union": 613349,
+        "total_count": 462846,
+        "mean_IU": 0.684
+    },
+    "kite": {
+        "intersection": 316112,
+        "union": 718609,
+        "total_count": 560565,
+        "mean_IU": 0.44
+    },
+    "baseball bat": {
+        "intersection": 231572,
+        "union": 614013,
+        "total_count": 507853,
+        "mean_IU": 0.377
+    },
+    "baseball glove": {
+        "intersection": 337344,
+        "union": 716861,
+        "total_count": 553053,
+        "mean_IU": 0.471
+    },
+    "skateboard": {
+        "intersection": 53729,
+        "union": 592871,
+        "total_count": 479482,
+        "mean_IU": 0.091
+    },
+    "surfboard": {
+        "intersection": 814933,
+        "union": 3769942,
+        "total_count": 2697777,
+        "mean_IU": 0.216
+    },
+    "tennis racket": {
+        "intersection": 558686,
+        "union": 5003308,
+        "total_count": 3617095,
+        "mean_IU": 0.112
+    },
+    "bottle": {
+        "intersection": 4281457,
+        "union": 12584582,
+        "total_count": 8668720,
+        "mean_IU": 0.34
+    },
+    "mean_IU": 0.4056225399543176,
+    "weighted_mean_IU": 0.5462940490742952
+}

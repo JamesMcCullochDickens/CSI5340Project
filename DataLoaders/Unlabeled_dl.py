@@ -80,6 +80,34 @@ all_fps = get_all_fps()
 debug = "debug"
 """
 
+
+def write_all_unlabeled_files():
+    all_fps = get_all_fps()
+    unlablled_ims_path = "C:/Users/james/PycharmProjects/CSI5340Project/Unlabelled_Images"
+    for index, path in enumerate(all_fps):
+        if "unlabelled_pairs" in path:
+            rgb_path = path
+            depth_path = path[0:-7] + "inpainted_depth.png"
+        # sun rgbd unlabeled pairs
+        elif "SUNRGBDv2Test" in path:
+            rgb_outer_path = os.path.join(path, "image")
+            rgb_path = os.path.join(rgb_outer_path, os.listdir(rgb_outer_path)[0])
+            depth_outer_path = os.path.join(path, "depth")
+            depth_path = os.path.join(depth_outer_path, os.listdir(depth_outer_path)[0])
+        # sun rgbd trainval pairs
+        else:
+            rgb_outer_path = os.path.join(path, "image")
+            rgb_path = os.path.join(rgb_outer_path, os.listdir(rgb_outer_path)[0])
+            depth_outer_path = os.path.join(path, "depth_bfx")
+            depth_path = os.path.join(depth_outer_path, os.listdir(depth_outer_path)[0])
+        rgb_im = Image.open(rgb_path)
+        depth_im = Image.open(depth_path)
+        rgb_im.save(os.path.join(unlablled_ims_path, "rgb_im_"+str(index))+".png")
+        depth_im.save(os.path.join(unlablled_ims_path, "depth_im_"+str(index))+".png")
+    print("Finished writing files")
+
+#write_all_unlabeled_files()
+
 def requires_normalization(im):
     return (im > 255.0).any() > 0
 
@@ -88,10 +116,35 @@ def unlabeled_iterator(start_value, skip_value, batch_size, depth_only=False, pe
     all_fps = get_all_fps()
     if permutation is not None:
         all_fps = [all_fps[i] for i in permutation]
+
+    start_counter = 0
+    skip_counter = 0
+    current_batch_val = 0
     for index, path in enumerate(all_fps):
         if skip_value != 0:
-            if not g_dl.skipFunction(index, start_value, batch_size, skip_value):
+            if index < start_value:
+                start_counter += 1
                 continue
+
+                # skip the value
+            if skip_counter != 0 and skip_counter < skip_value and current_batch_val == 0:
+                skip_counter += 1
+                continue
+
+                # reset the skip counter and start skipping at the end of a batch
+            if skip_counter == 0 and current_batch_val == batch_size:
+                current_batch_val = 0
+                skip_counter += 1
+                continue
+
+                # reset the skip counter and get the batch when the skip counter has reached its upper bound
+            if skip_counter == skip_value and skip_value != 0:
+                skip_counter = 0
+                current_batch_val += 1
+
+                # get more batch iterations
+            elif skip_counter == 0 and current_batch_val < batch_size and skip_value != 0:
+                current_batch_val += 1
 
         raw_data = {}
 
@@ -123,7 +176,7 @@ def unlabeled_iterator(start_value, skip_value, batch_size, depth_only=False, pe
         depth_im = Image.open(depth_path)
         depth_im = depth_im.resize((600, 800), resample=Image.NEAREST)
         depth_im = np.asarray(depth_im)
-        if np.all(depth_im==0): # some depth images in the SUN RGBD TEST are totally black, i.e. depth values all 0
+        if np.all(depth_im == 0): # some depth images in the SUN RGBD TEST are totally black, i.e. depth values all 0
             continue
         if len(depth_im.shape) == 2:
             depth_im = np.expand_dims(depth_im, axis=-1)
@@ -357,9 +410,7 @@ def get_unlabeled_rotation_dl(batch_size, num_workers, depth_only):
 
 """
 # testing
-rgb_transform = da_utils.rgb_transform
-depth_transform = da_utils.depth_transform
-data_it = get_unlabeled_pair_dl(10, 0, True, rgb_transform, depth_transform)
+data_it = get_unlabeled_pair_dl(1, 0, True, None, None)
 for data in data_it:
     debug = "debug"
 """

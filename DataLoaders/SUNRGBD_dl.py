@@ -7,6 +7,10 @@ from PIL import Image
 import numpy as np
 import CategoryFilter
 import CategoryInfo
+import torch
+from functools import partial
+import ShowImageUtils as s_utils
+import torchvision.transforms as T
 
 outer_path = PathGetter.get_fp("SUN_RGBD")
 train_test_path = "traintestSUNRGBD"
@@ -69,6 +73,38 @@ def get_test_train_split():
     return dataset_list
 
 #get_test_train_split()
+
+def write_all_to_folder(train=True):
+    if train:
+        save_fp = "C:/Users/James/PycharmProjects/CSI5340Project/ProjectData/SUN_RGBD/Train"
+        fps = get_test_train_split()["trainval_paths"]
+    else:
+        save_fp = "C:/Users/James/PycharmProjects/CSI5340Project/ProjectData/SUN_RGBD/Test"
+        fps = get_test_train_split()["test_paths"]
+    for index, fp in enumerate(fps):
+        if not train:
+            counter = index + 5285
+        else:
+            counter = 0
+        rgb_folder_path = fp + "/image"
+        rgb_file_name = os.listdir(rgb_folder_path)[0]
+        rgb_im = Image.open(os.path.join(rgb_folder_path, rgb_file_name))
+        rgb_save_path = os.path.join(save_fp, "rgb_im_"+str(index+counter)+".png")
+        rgb_im.save(rgb_save_path)
+
+        depth_folder_path = fp + "/depth_bfx"
+        depth_file_name = os.listdir(depth_folder_path)[0]
+        depth_im = Image.open(os.path.join(depth_folder_path, depth_file_name))
+        depth_im_save_path = os.path.join(save_fp, "depth_im_" + str(index+counter) + ".png")
+        depth_im.save(depth_im_save_path)
+
+        seg_path = fp+"/seg37.png"
+        seg_im = Image.open(seg_path)
+        seg_im_save_path = os.path.join(save_fp, "seg_im_" + str(index+counter) + ".png")
+        seg_im.save(seg_im_save_path)
+
+#write_all_to_folder(True)
+#write_all_to_folder(False)
 
 def get_bounding_boxes():
     data = scipy.io.loadmat(corrected_v2_info)
@@ -214,3 +250,175 @@ instance_info1 = getInstanceInfo(sample_fp1)
 instance_info2 = getInstanceInfo(sample_fp2)
 debug = "debug"
 """
+
+def filter_path(path):
+    return "rgb" in path
+
+def get_im_num(path):
+    path = path.split("_")[-1]
+    return path
+
+def requires_normalization(im):
+    return (im > 255.0).any() > 0
+
+def nyudv2_it(start_value, skip_value, batch_size, train, permutation, debug=False):
+    if train:
+        images_path = "../ProjectData/SUN_RGBD/train"
+    else:
+        images_path = "../ProjectData/SUN_RGBD/test"
+
+    fps = list(filter(filter_path, os.listdir(images_path)))
+
+    if permutation is not None:
+        fps = [fps[i] for i in permutation]
+
+    start_counter = 0
+    skip_counter = 0
+    current_batch_val = 0
+
+    for index, fp in enumerate(fps):
+        if skip_value != 0: # there is more than one worker
+            if index < start_value:
+                start_counter += 1
+                continue
+
+            # skip the value
+            if skip_counter != 0 and skip_counter < skip_value and current_batch_val == 0:
+                skip_counter += 1
+                continue
+
+            # reset the skip counter and start skipping at the end of a batch
+            if skip_counter == 0 and current_batch_val == batch_size:
+                current_batch_val = 0
+                skip_counter += 1
+                continue
+
+            # reset the skip counter and get the batch when the skip counter has reached its upper bound
+            if skip_counter == skip_value and skip_value != 0:
+                skip_counter = 0
+                current_batch_val += 1
+
+            # get more batch iterations
+            elif skip_counter == 0 and current_batch_val < batch_size and skip_value != 0:
+                current_batch_val += 1
+
+        if debug == True and index < 50:
+            break
+
+        #print(index)
+
+        # rgb im
+        rgb_im = Image.open(os.path.join(images_path, fp))
+        rgb_im = rgb_im.resize((800, 600), resample=Image.BILINEAR)
+        rgb_im = np.asarray(rgb_im)
+
+        # depth im
+        im_num = get_im_num(fp)
+        depth_fp = images_path+"\depth_im_"+im_num
+        depth_im = Image.open(os.path.join(depth_fp))
+        depth_im = depth_im.resize((800, 600), resample=Image.NEAREST)
+        depth_im = np.asarray(depth_im)
+        if requires_normalization(depth_im):
+            depth_im = s_utils.normalizeDepthImage(depth_im)
+
+        # gt semantic segmentation mask
+        sem_fp = images_path+"\seg40_im_"+im_num
+        ss_mask = Image.open(os.path.join(sem_fp))
+        original_ss_mask = np.asarray(ss_mask)
+        resized_ss_mask = np.asarray(ss_mask.resize((800, 600), resample=Image.NEAREST))
+
+        yield {"rgb_im": rgb_im, "depth_im": depth_im, "resized_ss_mask": resized_ss_mask, "original_ss_mask": original_ss_mask}
+
+
+class sun_rgbd_iterable_dataset(torch.utils.data.IterableDataset):
+    def __init__(self, batch_size, train, permutation=None):
+        super(sun_rgbd_iterable_dataset).__init__()
+        self.batch_size = batch_size
+        self.train = train
+        self.permutation = permutation
+    def __iter__(self):
+        worker_info = torch.utils.data.get_worker_info()
+        if worker_info is None:
+            start_value = 0
+            skip_value = 0
+        else:
+            start_value = worker_info.id * self.batch_size
+            skip_value = (worker_info.num_workers - 1) * self.batch_size
+        return iter(nyudv2_it(start_value, skip_value, self.batch_size, self.train, self.permutation))
+
+
+# transforms on rgb images
+color_jitter = T.ColorJitter(0.5, 0.5, 0.1, 0.1) # brightness, contrast, saturation , hue
+horizontal_flip = T.RandomHorizontalFlip(p=1.0)
+gaussian_blur = d_utils.GaussianBlur(kernel_size=7)
+rgb_normalization = T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+to_tensor = T.ToTensor()
+
+def nyu_collate(train, batch):
+    rgb_ims = []
+    depth_ims = []
+    original_sem_masks = []
+    resized_sem_masks = []
+    for element in batch:
+        rgb_im = to_tensor(element["rgb_im"])
+        depth_im = torch.unsqueeze(torch.tensor(element["depth_im"]), dim=0)
+        original_ss_mask = torch.unsqueeze(torch.tensor(element["original_ss_mask"]), dim=0)
+        resized_ss_mask = torch.unsqueeze(torch.tensor(element["resized_ss_mask"]), dim=0)
+
+        if train:
+            if random.choice([True, False]):
+                #rgb_im = color_jitter(rgb_im)
+                rgb_im = horizontal_flip(rgb_im)
+                depth_im = horizontal_flip(depth_im)
+                resized_ss_mask = horizontal_flip(resized_ss_mask)
+
+        rgb_im = rgb_normalization(rgb_im)
+        rgb_ims.append(torch.unsqueeze(rgb_im, dim=0))
+        depth_im = depth_im*(1/255)
+        depth_im = (depth_im-0.449)/0.226
+
+        """
+        # sanity check visualization code
+        rgb_im_ = s_utils.unNormalizeImage(rgb_im)
+        s_utils.showImage(rgb_im_)
+        depth_im_ = depth_im*255.0
+        depth_im_ = (depth_im_*0.226)+0.449
+        depth_im_ = s_utils.channelsFirstToLast(depth_im_.numpy())
+        depth_im_ = np.repeat(depth_im_, 3, axis=-1).astype(np.uint8)
+        s_utils.showImage(depth_im_)
+        #original_sem_mask_ = original_ss_mask.numpy()[0]
+        resized_sem_mask_ = resized_ss_mask.numpy()[0]
+        s_utils.showSegmentationImage(resized_sem_mask_, rgb_im_)
+        """
+
+        depth_ims.append(torch.unsqueeze(depth_im, dim=0))
+        original_sem_masks.append(original_ss_mask)
+        resized_sem_masks.append(resized_ss_mask)
+    rgb_ims = torch.cat([rgb_im for rgb_im in rgb_ims], dim=0)
+    depth_ims = torch.cat([depth_im for depth_im in depth_ims], dim=0)
+    original_sem_masks = torch.cat([original_sem_mask for original_sem_mask in original_sem_masks], dim=0).type(torch.LongTensor)
+    resized_ss_masks = torch.cat([resized_sem_mask for resized_sem_mask in resized_sem_masks], dim=0).type(torch.LongTensor)
+    return rgb_ims, depth_ims, resized_ss_masks, original_sem_masks
+
+
+def sun_rgbd_dl(batch_size=8, num_workers=0, train=True):
+    coll = partial(nyu_collate, train)
+    permutation = None
+    if train:
+        permutation = np.random.permutation(5285).tolist()
+    it = sun_rgbd_iterable_dataset(batch_size=batch_size, train=train, permutation=permutation)
+    dl = torch.utils.data.DataLoader(it, batch_size=batch_size, num_workers=num_workers, pin_memory=True,
+                                     collate_fn=coll,  persistent_workers=False, drop_last=True)
+    return dl
+
+
+
+
+
+
+
+
+
+
+
+

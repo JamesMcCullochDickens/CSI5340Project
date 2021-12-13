@@ -9,8 +9,6 @@ import logging
 import Models.SimSiam as sim_siam
 import Models.BYOL as byol
 logging.captureWarnings(True)
-import time
-from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 import Visualization.VisualizeConvFilters as visualize_filters
 
 
@@ -97,7 +95,7 @@ def train(model, optimizer, lr_scheduler, dataloader, sub_batch_num, num_epochs,
     return {"epoch_losses": loss_dict["epoch_losses"], "iteration_losses": loss_dict["iteration_losses"]}
 
 if __name__ == "__main__":
-    num_epochs = 20
+    num_epochs = 25
     sub_batch_num = 1
     model_name = "Sim_Siam_Exp2"
     save_path = os.path.join(saved_models_path, model_name)
@@ -114,7 +112,7 @@ if __name__ == "__main__":
     plot_train_dict(train_dict, model_name, saved_plots_path)
 
 
-    model = loadModel(model, None, None, save_path, model_only=True)
+    #model = loadModel(model, None, None, save_path, model_only=True)
     visualize_filters.visualize_conv_filters_backbone(model)
 
 

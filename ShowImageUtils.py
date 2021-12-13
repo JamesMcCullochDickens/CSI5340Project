@@ -235,11 +235,10 @@ def showBinaryInstanceMasks(image, instance_masks, bbs=None, labels=None, confid
     else:
         showImageWithBoundingBoxes(overlayed_segmentation_image, bbs, labels, confidence_scores)
 
-"""
+
 class NormalizeInverse(torchvision.transforms.Normalize):
     
     #Undoes the normalization and returns the reconstructed images in the input domain.
-    
 
     def __init__(self, mean, std):
         mean = torch.as_tensor(mean)
@@ -250,11 +249,9 @@ class NormalizeInverse(torchvision.transforms.Normalize):
 
     def __call__(self, tensor):
         return super().__call__(tensor.clone())
-"""
 
-"""
+
 def unNormalizeImage(image):
-    # these are actually 2012 values...
     image = image.cpu()
     inv_normalize = NormalizeInverse(mean=[0.485, 0.456, 0.406],  # image net weights
                                                std=[0.229, 0.224, 0.225])
@@ -263,7 +260,8 @@ def unNormalizeImage(image):
     un_normalized_image = un_normalized_image.numpy().astype(np.uint8)
     un_normalized_image = np.transpose(un_normalized_image, (1, 2, 0))
     return un_normalized_image
-"""
+
+
 
 def cleanBoundingBoxes(bounding_boxes):
     bounding_boxes_np = bounding_boxes[0]
@@ -297,10 +295,6 @@ def visualizeFeatureMap(feature_map, channel=1, with_resize=False, image_width=6
     else:
         showImage(scaled_map)
 
-def decodeImageToArray(im_path):
-    image = Image.open(im_path)
-    image = np.asarray(image).astype(np.uint8)
-    return image
 
 def isValidLocation(i, j, image_height, image_width):
     if i<0:

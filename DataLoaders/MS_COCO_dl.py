@@ -4,7 +4,6 @@ import os
 from PIL import Image
 import numpy as np
 import json
-import GenericDataloader as g_dl
 import torch
 from torchvision import transforms
 import DataAug_Utils as d_utils
@@ -212,10 +211,39 @@ def coco_ss_iterator(start_value, skip_value, batch_size, val, permutation, debu
     image_names = list(filter(filterSeg, os.listdir(images_path)))
     if permutation is not None:
         image_names = [image_names[i] for i in permutation]
+
+    start_counter = 0
+    skip_counter = 0
+    current_batch_val = 0
     for index, image_name in enumerate(image_names):
         if skip_value != 0: # there is more than one worker
-            if not g_dl.skipFunction(index, start_value, batch_size, skip_value):
+
+            if index < start_value:
+                start_counter += 1
                 continue
+
+                # skip the value
+            if skip_counter != 0 and skip_counter < skip_value and current_batch_val == 0:
+                skip_counter += 1
+                continue
+
+                # reset the skip counter and start skipping at the end of a batch
+            if skip_counter == 0 and current_batch_val == batch_size:
+                current_batch_val = 0
+                skip_counter += 1
+                continue
+
+                # reset the skip counter and get the batch when the skip counter has reached its upper bound
+            if skip_counter == skip_value and skip_value != 0:
+                skip_counter = 0
+                current_batch_val += 1
+
+                # get more batch iterations
+            elif skip_counter == 0 and current_batch_val < batch_size and skip_value != 0:
+                current_batch_val += 1
+
+        if debug == True and index < 50:
+            break
 
         # not all images in train or val have a seg mask
         seg_path = os.path.join(images_path, image_name[0:-4] + "_seg.png")

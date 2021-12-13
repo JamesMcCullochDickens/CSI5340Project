@@ -380,7 +380,7 @@ def get_grayscale_rn50_backbone(pre_trained=True, with_pooling=False, dilation_v
     else:
         rn_50 = remove_classification(resnet50(pretrained=pre_trained, progress=False, dilation_vals=dilation_vals))
     rn_50 = list(rn_50.children())
-    new_conv = torch.nn.Conv2d(in_channels=1, out_channels=64, kernel_size=7, stride=(2, 2), padding=(3, 3), bias=True)
+    new_conv = torch.nn.Conv2d(in_channels=1, out_channels=64, kernel_size=7, stride=(2, 2), padding=(3, 3), bias=False)
     if pre_trained:
         old_conv = rn_50[0]
         old_conv_weight = torch.tensor(old_conv.weight.clone().detach().requires_grad_(True))

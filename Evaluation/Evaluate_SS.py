@@ -3,7 +3,8 @@ import numpy as np
 import pprint
 import CacheDictUtils
 
-def computeMeanIU(model, test_data, cat_map, num_categories, with_depth=False, save_fp=None):
+def computeMeanIU(model, test_data, cat_map, num_categories, depth_dataset=True,
+                  rgb_dataset=False, rgb_only=False, depth_only=False, save_fp=None):
     model.eval()
     model.cuda()
     IU_dict = {}
@@ -17,22 +18,29 @@ def computeMeanIU(model, test_data, cat_map, num_categories, with_depth=False, s
 
         # get images and bbs from the dataloader and send them to the gpu
         images = batch[0].cuda(non_blocking=True)
-        if with_depth:
-            depth_images = batch[1].cuda(non_blocking=True)
+        if depth_dataset:
+            if not rgb_only:
+                depth_images = batch[1].cuda(non_blocking=True)
             segmentation_masks = batch[2].cuda(non_blocking=True)
             gt_seg_mask = batch[3][0].cuda(non_blocking=True)
         else:
-            segmentation_masks = batch[1].cuda(non_blocking=True)
-            gt_seg_mask = batch[2][0].cuda(non_blocking=True)
+            if rgb_dataset:
+                segmentation_masks = batch[1].cuda(non_blocking=True)
+                gt_seg_mask = batch[2][0].cuda(non_blocking=True)
 
         hw_tuple = (gt_seg_mask.shape[0], gt_seg_mask.shape[1])
 
         with torch.no_grad():
             with torch.cuda.amp.autocast():  # 16 bit precision
-                if not with_depth:
+                if rgb_dataset:
                     seg_mask, _ = model(images, segmentation_masks, hw_tuple)
                 else:
-                    seg_mask, _ = model(images, depth_images, segmentation_masks, hw_tuple)
+                    if depth_only:
+                        seg_mask, _ = model(depth_images, segmentation_masks, hw_tuple)
+                    elif rgb_only:
+                        seg_mask, _ = model(images, segmentation_masks, hw_tuple)
+                    else:
+                        seg_mask, _ = model(images, depth_images, segmentation_masks, hw_tuple)
 
         # gets counts of each category in the gt seg mask
         gt_categories, gt_counts = torch.unique(gt_seg_mask, return_counts=True)
@@ -94,7 +102,7 @@ def computeMeanIU(model, test_data, cat_map, num_categories, with_depth=False, s
         IU_dict_[cat_map[int(cat)]] = IU_dict[cat]
     IU_dict = IU_dict_
 
-    pprint.pprint(IU_dict)
+    #pprint.pprint(IU_dict)
     print("The mean IU is " + str(round(mean_IU, 3)))
 
     # weighted mean IU computation
@@ -116,7 +124,8 @@ def computeMeanIU(model, test_data, cat_map, num_categories, with_depth=False, s
     return IU_dict
 
 
-def computeMeanPixelAccuracy(model, test_data, cat_map, num_categories, with_depth=False, save_fp=None):
+def computeMeanPixelAccuracy(model, test_data, cat_map, num_categories, depth_dataset=True, rgb_dataset=False,
+                             rgb_only=False, depth_only=False, save_fp=None):
     model.eval()
     model.cuda()
     accuracy_per_cat_dict = {}
@@ -128,24 +137,32 @@ def computeMeanPixelAccuracy(model, test_data, cat_map, num_categories, with_dep
         if batch_number % 100 == 0 and batch_number != 0:
             print("batch number: " + str(batch_number))
 
-        # get images and bbs from the dataloader and send them to the gpu
-        images = batch[0].cuda(non_blocking=True)
-        if with_depth:
-            depth_images = batch[1].cuda(non_blocking=True)
-            segmentation_masks = batch[2].cuda(non_blocking=True)
-            gt_seg_mask = batch[3][0].cuda(non_blocking=True)
-        else:
-            segmentation_masks = batch[1].cuda(non_blocking=True)
-            gt_seg_mask = batch[2][0].cuda(non_blocking=True)
+            # get images and bbs from the dataloader and send them to the gpu
+            images = batch[0].cuda(non_blocking=True)
+            if depth_dataset:
+                if not rgb_only:
+                    depth_images = batch[1].cuda(non_blocking=True)
+                segmentation_masks = batch[2].cuda(non_blocking=True)
+                gt_seg_mask = batch[3][0].cuda(non_blocking=True)
+            else:
+                if rgb_dataset:
+                    segmentation_masks = batch[1].cuda(non_blocking=True)
+                    gt_seg_mask = batch[2][0].cuda(non_blocking=True)
 
-        hw_tuple = (gt_seg_mask.shape[0], gt_seg_mask.shape[1])
+            hw_tuple = (gt_seg_mask.shape[0], gt_seg_mask.shape[1])
 
-        with torch.no_grad():
-            with torch.cuda.amp.autocast():  # 16 bit precision
-                if not with_depth:
-                    seg_mask, _ = model(images, segmentation_masks, hw_tuple)
-                else:
-                    seg_mask, _ = model(images, depth_images, segmentation_masks, hw_tuple)
+            with torch.no_grad():
+                with torch.cuda.amp.autocast():  # 16 bit precision
+                    if rgb_dataset:
+                        seg_mask, _ = model(images, segmentation_masks, hw_tuple)
+                    else:
+                        if depth_only:
+                            seg_mask, _ = model(depth_images, segmentation_masks, hw_tuple)
+                        elif rgb_only:
+                            seg_mask, _ = model(images, segmentation_masks, hw_tuple)
+                        else:
+                            seg_mask, _ = model(images, depth_images, segmentation_masks, hw_tuple)
+
 
         # gets counts of each category in the gt seg mask
         gt_categories, gt_counts = torch.unique(gt_seg_mask, return_counts=True)

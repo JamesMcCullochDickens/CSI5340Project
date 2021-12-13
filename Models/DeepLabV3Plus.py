@@ -7,7 +7,7 @@ import torchvision.models.segmentation as SegModels
 
 
 class DeepLabHeadV3Plus(nn.Module):
-    def __init__(self, backbone=None, in_channels=2048, low_level_channels=256, num_classes=37, aspp_dilate=[12, 24, 36], loss="ce"):
+    def __init__(self, backbone=None, in_channels=2048, low_level_channels=256, num_classes=37, aspp_dilate=[12, 24, 36], loss="ce", with_convert=True):
         super(DeepLabHeadV3Plus, self).__init__()
 
         if backbone is None:
@@ -24,7 +24,7 @@ class DeepLabHeadV3Plus(nn.Module):
 
         self.aspp = ASPP(in_channels, aspp_dilate)
 
-        classifier = nn.Sequential(
+        self.classifier = nn.Sequential(
             nn.Conv2d(304, 256, 3, padding=1, bias=False),
             nn.BatchNorm2d(256),
             nn.ReLU(inplace=True),
@@ -35,9 +35,13 @@ class DeepLabHeadV3Plus(nn.Module):
             self.loss = nn.CrossEntropyLoss(ignore_index=0)
         elif loss == "focal_loss":
             self.loss = losses.FocalLoss()
-            pass
 
-        self.classifier = convert_to_separable_conv(classifier)
+        if with_convert:
+            self.classifier = convert_to_separable_conv(self.classifier)
+
+    def freeze_backbone(self):
+        for param in self.backbone.parameters():
+            param.requires_grad = False
 
     def forward(self, ims, gt=None, hw_tuple=None):
         im_height = ims.shape[2]

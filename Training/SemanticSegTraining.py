@@ -4,19 +4,18 @@ import os
 from pathlib import Path
 import time
 import ShowImageUtils as s_utils
-import CacheDictUtils
-import DataLoaders.MS_COCO_dl as ms_coco_dl
 saved_models_path = os.path.join(os.getcwd(), "Trained_Models")
 saved_plots_path = os.path.join(os.getcwd(), "Saved_Plots")
 saved_eval_results_path = os.path.join(Path(os.getcwd()).parent, "Evaluation/Eval_Results")
-import Models.DeepLabV3Plus as dlv3
-import Training.Optimizers as opt_utils
+import Models.DeepLabV3Plus as dlv3p
 import PlotUtils.PlotUtils as plot_utils
 import Evaluation.Evaluate_SS as eval_ss
 import COCOStuffDict as stuff_dict
-import numpy as np
-import Backbones.ResNet as rn
 import logging
+import Models.DeepLabv3 as dlv3
+import numpy as np
+import DataLoaders.NYUDv2_dl as nyudv2_dl
+import Backbones.ResNet as rn
 logging.captureWarnings(True)
 
 def saveModel(epoch, model, optimizer, lr_scheduler, loss_dict, save_path):
@@ -79,6 +78,64 @@ def train_rgb_ss_model(model, optimizer, lr_scheduler, num_epochs, dataloader, s
         loss_dict["iteration_losses"].extend(iteration_losses)
         print("\nFinished training epoch " + str(epoch_num) + " with loss: " + str(round(epoch_loss, 2)))
         saveModel(epoch_num, model, optimizer, lr_scheduler, loss_dict, save_path)
+    return {"epoch_losses": loss_dict["epoch_losses"], "iteration_losses": loss_dict["iteration_losses"]}
+
+def train_ss_model(model, optimizer, lr_scheduler, num_epochs, train_dl, test_dl,
+                         eval_dict, save_path, depth_only=False, rgb_only=False, load_path=None):
+    scaler = torch.cuda.amp.GradScaler()
+    torch.backends.cudnn.benchmark = True
+    model.train()
+    model.cuda()
+    if load_path is not None:
+        epoch, model, optimizer, lr_scheduler, loss_dict = loadModel(model, optimizer, lr_scheduler, load_path)
+    else:
+        epoch = None
+        loss_dict = {"epoch_losses": [], "iteration_losses": []}
+    if epoch is None:
+        epoch_min = 1
+    else:
+        epoch_min = epoch
+    best_mIoU = -1
+    for epoch_num in range(epoch_min, num_epochs + 1):
+        model.train()
+        epoch_loss = 0.0
+        iteration_losses = []
+        for batch_num, data in enumerate(train_dl):
+            optimizer.zero_grad(set_to_none=True)
+            if batch_num % 100 == 0 and batch_num != 0:
+                print("Batch num " + str(batch_num))
+
+            seg_masks = data[2].to('cuda:0')
+            if rgb_only:
+                ims = data[0].to('cuda:0')
+            elif depth_only:
+                ims = data[1].to('cuda:0')
+            if depth_only or rgb_only:
+                with torch.cuda.amp.autocast():  # 16 bit precision = faster and less memory
+                    _, loss = model(ims, seg_masks)
+            else:
+                rgb_ims = data[0].to('cuda:0')
+                depth_ims = data[1].to('cuda:0')
+                with torch.cuda.amp.autocast():  # 16 bit precision = faster and less memory
+                    _, loss = model(rgb_ims, depth_ims, seg_masks)
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+            loss = loss.item()
+            epoch_loss += loss
+            iteration_losses.append(loss)
+        lr_scheduler.step()
+        loss_dict["epoch_losses"].extend([epoch_loss])
+        loss_dict["iteration_losses"].extend(iteration_losses)
+        print("Finished training epoch " + str(epoch_num) + " with loss: " + str(round(epoch_loss, 2)) + "\n")
+
+        # eval check
+        num_categories = len(list(eval_dict.keys()))-1 # -1 for the unknown class
+        current_mIoU = eval_ss.computeMeanIU(model, test_dl, eval_dict, num_categories,
+                                             rgb_dataset=False, depth_dataset=True, rgb_only=rgb_only, depth_only=depth_only, save_fp=None)["mean_IU"]
+        if current_mIoU > best_mIoU:
+            best_mIoU = current_mIoU
+            saveModel(epoch_num, model, optimizer, lr_scheduler, loss_dict, save_path)
     return {"epoch_losses": loss_dict["epoch_losses"], "iteration_losses": loss_dict["iteration_losses"]}
 
 
@@ -153,38 +210,35 @@ def visualize_ss_masks(model, dataloader, save_fp, with_depth=False, num_ims=50)
 
 if __name__ == "__main__":
     torch.backends.cudnn.benchmark = True
-
-    """
     # training
-    num_epochs = 0
-    num_classes = 97
-    model_name = "dlv3+_ResNet50_grayscale_COCO_train"
+    num_epochs = 40
+    num_classes = 41
+
+    model_name = "dlv3_Depth_Grayscale_nyudv2"
     save_path = os.path.join(saved_models_path, model_name)
     load_path = os.path.join(saved_models_path, model_name)
-    dataloader = ms_coco_dl.get_mscoco_stuff_grayscale_train_it(batch_size=12, num_workers=8)
-    backbone = rn.DeepLabV3PlusBackbone(rn.get_grayscale_rn50_backbone(pre_trained=True))
-    model = dlv3.DeepLabHeadV3Plus(num_classes=num_classes, backbone=backbone)
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.007, momentum=0.9, weight_decay=0.0005)
-    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.9, verbose=True)
-    train_dict = train_rgb_ss_model(model, optimizer, lr_scheduler, num_epochs, dataloader, save_path, load_path=load_path)
+    train_dl = nyudv2_dl.nyudv2_dl(batch_size=4, num_workers=8, train=True)
+    test_dl = nyudv2_dl.nyudv2_dl(batch_size=1, num_workers=0, train=False)
+
+    grayscale_backbone = rn.DeepLabV3PlusBackbone(rn.get_grayscale_rn50_backbone())
+    model = dlv3p.DeepLabHeadV3Plus(num_classes=97, backbone=grayscale_backbone) # the pretrained coco model
+    pre_trained_model_path = "C:/Users/james/PycharmProjects/CSI5340Project/Training/Trained_Models/dlv3+_ResNet50_grayscale_COCO_train"
+    model = loadModel(model, None, None, pre_trained_model_path, model_only=True)
+    model.backbone.out_channels = 2048
+    model = dlv3.DeepLabv3(num_classes=41, backbone=model.backbone, penalize_zero=False)
+    #model.freeze_weights()
+    eval_dict = nyudv2_dl.semantic_40_dict
+    optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=0.009, momentum=0.9, weight_decay=0.0005)
+    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.8, verbose=False)
+
+    train_dict = train_ss_model(model, optimizer, lr_scheduler, num_epochs, train_dl, test_dl,
+                         eval_dict, save_path, depth_only=True, rgb_only=False, load_path=None)
     plot_train_dict(train_dict, model_name, saved_plots_path)
 
     # testing
-    test_dl = ms_coco_dl.get_mscoco_stuff_grayscale_val_it(batch_size=1, num_workers=0)
     save_fp_miou = saved_eval_results_path+"/"+model_name+"_mIOU"
     save_fp_accuracy = saved_eval_results_path+"/"+model_name+"_pixel_accuracy"
     cat_map = stuff_dict.coco_stuff_dict
-    eval_ss.computeMeanIU(model, test_dl, cat_map, num_classes-1, with_depth=False, save_fp=save_fp_miou)
-    eval_ss.computeMeanPixelAccuracy(model, test_dl, cat_map, num_classes-1, with_depth=False, save_fp=save_fp_accuracy)
-    """
-
-    # some example masks
-    num_classes = 97
-    model_name = "dlv3+_ResNet50_grayscale_COCO_train"
-    model_path = os.path.join(saved_models_path, model_name)
-    save_fp = saved_eval_results_path+"/Sample_Masks/"+model_name+"_ss_masks_"
-    backbone = rn.DeepLabV3PlusBackbone(rn.get_grayscale_rn50_backbone(pre_trained=True))
-    model = dlv3.DeepLabHeadV3Plus(num_classes=num_classes, backbone=backbone)
-    model = loadModel(model=model, optimizer=None, lr_scheduler=None, save_path=model_path, model_only=True)
-    test_dl = ms_coco_dl.get_mscoco_stuff_grayscale_val_it(batch_size=1, num_workers=0)
-    visualize_ss_masks(model, test_dl, save_fp)
+    model = loadModel(model, None, None, load_path, save_path=load_path)
+    eval_ss.computeMeanIU(model, test_dl, cat_map, num_classes-1, depth_dataset=True, rgb_dataset=False, rgb_only=False, depth_only=True, save_fp=save_fp_miou)
+    eval_ss.computeMeanPixelAccuracy(model, test_dl, cat_map, num_classes-1, depth_dataset=True, rgb_dataset=False, rgb_only=False, depth_only=True, save_fp=save_fp_accuracy)

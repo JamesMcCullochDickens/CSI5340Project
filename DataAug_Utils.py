@@ -318,7 +318,7 @@ class GaussianBlur(object):
         return img
 
 
-color_jitter = T.ColorJitter(0.2, 0.0, 0.2, 0.0)
+color_jitter = T.ColorJitter(0.2, 0.0, 0.2, 0.0) # brightness, contrast, saturation , hue
 data_transforms = T.Compose([T.RandomResizedCrop(size=224, scale=(0.55, 0.8)),
                                           T.RandomHorizontalFlip(p=0.3),
                                           T.RandomApply([color_jitter], p=0.7),
