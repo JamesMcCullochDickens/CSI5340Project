@@ -74,15 +74,24 @@ def get_all_fps():
     all_fps = nyudv2_unlabeled + srgbd_trainval + srgbd_unlabeled
     return all_fps
 
+def get_all_fps_():
+    rgb_paths = []
+    for path in os.listdir("../ProjectData/Unlabelled_Images"):
+        if "rgb" in path:
+            rgb_paths.append(path)
+    return rgb_paths
+
 
 """
 all_fps = get_all_fps()
 debug = "debug"
 """
 
+def filter_func(fp):
+    return "rgb" in fp
 
 def write_all_unlabeled_files():
-    all_fps = get_all_fps()
+    all_fps = os.listdir()
     unlablled_ims_path = "C:/Users/james/PycharmProjects/CSI5340Project/Unlabelled_Images"
     for index, path in enumerate(all_fps):
         if "unlabelled_pairs" in path:
@@ -111,9 +120,12 @@ def write_all_unlabeled_files():
 def requires_normalization(im):
     return (im > 255.0).any() > 0
 
+def get_im_num(path):
+    path = path.split("_")[-1]
+    return path
 
 def unlabeled_iterator(start_value, skip_value, batch_size, depth_only=False, permutation=None, debug=False):
-    all_fps = get_all_fps()
+    all_fps = get_all_fps_()
     if permutation is not None:
         all_fps = [all_fps[i] for i in permutation]
 
@@ -147,7 +159,10 @@ def unlabeled_iterator(start_value, skip_value, batch_size, depth_only=False, pe
                 current_batch_val += 1
 
         raw_data = {}
+        im_num = get_im_num(path)
+        depth_path = "depth_im_"+im_num+".png"
 
+        """
         # the nyudv2 unlabeled pairs
         if "unlabelled_pairs" in path:
             rgb_path = path
@@ -172,6 +187,7 @@ def unlabeled_iterator(start_value, skip_value, batch_size, depth_only=False, pe
             rgb_im = rgb_im.resize((600, 800), resample=Image.BILINEAR)
             rgb_im = np.asarray(rgb_im, dtype=np.uint8)
             raw_data["rgb_im"] = rgb_im
+        """
 
         depth_im = Image.open(depth_path)
         depth_im = depth_im.resize((600, 800), resample=Image.NEAREST)
