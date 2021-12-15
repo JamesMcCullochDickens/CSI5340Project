@@ -4,7 +4,6 @@ from PIL import Image
 import os
 import PathGetter
 import DataLoaders.SUNRGBD_dl as srgb_dl
-import GenericDataloader as g_dl
 import ShowImageUtils as s_utils
 from functools import partial
 import DataAug_Utils as da_utils
@@ -125,6 +124,7 @@ def get_im_num(path):
     return path
 
 def unlabeled_iterator(start_value, skip_value, batch_size, depth_only=False, permutation=None, debug=False):
+    outer_path = "../ProjectData/Unlabelled_Images"
     all_fps = get_all_fps_()
     if permutation is not None:
         all_fps = [all_fps[i] for i in permutation]
@@ -160,7 +160,8 @@ def unlabeled_iterator(start_value, skip_value, batch_size, depth_only=False, pe
 
         raw_data = {}
         im_num = get_im_num(path)
-        depth_path = "depth_im_"+im_num+".png"
+        depth_path = os.path.join(outer_path, "depth_im_"+im_num)
+
 
         """
         # the nyudv2 unlabeled pairs
@@ -181,13 +182,13 @@ def unlabeled_iterator(start_value, skip_value, batch_size, depth_only=False, pe
             rgb_path = os.path.join(rgb_outer_path, os.listdir(rgb_outer_path)[0])
             depth_outer_path = os.path.join(path, "depth_bfx")
             depth_path = os.path.join(depth_outer_path, os.listdir(depth_outer_path)[0])
+        """
 
         if not depth_only:
-            rgb_im = Image.open(rgb_path)
+            rgb_im = Image.open(os.path.join(outer_path, path))
             rgb_im = rgb_im.resize((600, 800), resample=Image.BILINEAR)
             rgb_im = np.asarray(rgb_im, dtype=np.uint8)
             raw_data["rgb_im"] = rgb_im
-        """
 
         depth_im = Image.open(depth_path)
         depth_im = depth_im.resize((600, 800), resample=Image.NEAREST)
