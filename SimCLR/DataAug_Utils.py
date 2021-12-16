@@ -332,24 +332,23 @@ def depth_transform(depth_im):
 
     depth_im = data_transforms(depth_im)
 
-    """
-    # sanity check
-    depth_im *= 255.0
-    depth_im = depth_im.numpy().astype(np.uint8)
-    depth_im = s_utils.channelsFirstToLast(depth_im)
-    s_utils.showImage(depth_im)
-    debug = "debug"
-    """
-
     depth_im = depth_im[0]
     depth_im = depth_im - 0.449  # average of ImageNet channel means
     depth_im = depth_im / 0.226  # average of ImageNet channels standard deviations
     depth_im = torch.unsqueeze(torch.unsqueeze(depth_im, dim=0), dim=0)
     return depth_im
 
+data_transforms_rgb = T.Compose([
+            T.RandomResizedCrop(size=224),
+            T.RandomHorizontalFlip(), # 0.5 prob
+            T.RandomApply([color_jitter], p=0.8),
+            T.RandomGrayscale(p=0.2),
+            T.ToTensor()])
 
 def rgb_transform(rgb_im):
     rgb_im = Image.fromarray(rgb_im)
+
+    """
     rgb_im = color_jitter(rgb_im)
     rgb_im = random_resized_crop(torch_channels_first_to_last(rgb_im), is_depth=False)
     rgb_im = random_horizontal_flip(rgb_im)
@@ -357,6 +356,10 @@ def rgb_transform(rgb_im):
     rgb_im = gaussian_blur(rgb_im)
     rgb_im = rgb_im * (1/255.0)
     rgb_im = norm_transform(rgb_im)
+    """
+
+    rgb_im = data_transforms_rgb(rgb_im)
+    # rgb_im = torch_channels_first_to_last(rgb_im)
     rgb_im = torch.unsqueeze(rgb_im, dim=0)
     return rgb_im
 
