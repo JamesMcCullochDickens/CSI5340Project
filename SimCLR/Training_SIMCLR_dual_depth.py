@@ -7,8 +7,8 @@ from SIMCLR_db import SimCLR
 from Ntxent import NT_Xent
 import Dataloader as dl
 from Lars import LARS
-sys.path.append('../')
 import Backbones.ResNet as rn
+sys.path.append('../')
 import PlotUtils.PlotUtils as plot_utils
 
 
@@ -163,7 +163,7 @@ if __name__ == "__main__":
 	
 	"""
 	# load pretrained model
-	model_fp = os.path.join("Logs","checkpoint_25.tar")
+	model_fp = os.path.join("Logs","checkpoint_20.tar")
 	checkpoint = torch.load(model_fp, map_location=device)
 	model.load_state_dict(checkpoint['model_state_dict'])
 	model.to(device)
