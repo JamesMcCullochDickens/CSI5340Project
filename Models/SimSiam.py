@@ -91,7 +91,7 @@ class SimSiam(torch.nn.Module):
         super().__init__()
 
         self.backbone = backbone
-        self.projector = projection_MLP(backbone.output_dim)
+        self.projector = projection_MLP(backbone.out_channels)
         self.backbone,
         self.projector,
         self.predictor = prediction_MLP()

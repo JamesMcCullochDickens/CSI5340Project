@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torchvision.models._utils
 from torchvision._internally_replaced_utils import load_state_dict_from_url
+import torchvision.models.segmentation as SegModels
 
 
 __all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
@@ -374,13 +375,13 @@ output = rn_101(im)
 debug = "debug"
 """
 
-def get_grayscale_rn50_backbone(pre_trained=True, with_pooling=False, dilation_vals=[False, True, True]):
+def get_grayscale_rn50_backbone(pre_trained=True, with_pooling=False, dilation_vals=[False, True, True], with_bias=False):
     if not with_pooling:
         rn_50 = remove_head(resnet50(pretrained=pre_trained, progress=False, dilation_vals=dilation_vals))
     else:
         rn_50 = remove_classification(resnet50(pretrained=pre_trained, progress=False, dilation_vals=dilation_vals))
     rn_50 = list(rn_50.children())
-    new_conv = torch.nn.Conv2d(in_channels=1, out_channels=64, kernel_size=7, stride=(2, 2), padding=(3, 3), bias=False)
+    new_conv = torch.nn.Conv2d(in_channels=1, out_channels=64, kernel_size=7, stride=(2, 2), padding=(3, 3), bias=with_bias)
     if pre_trained:
         old_conv = rn_50[0]
         old_conv_weight = torch.tensor(old_conv.weight.clone().detach().requires_grad_(True))
@@ -394,7 +395,43 @@ def get_grayscale_rn50_backbone(pre_trained=True, with_pooling=False, dilation_v
         param.requires_grad = True
     return model
 
+
+class rn_50_gs_ss(nn.Module):
+    def __init__(self, with_pooling=True):
+        super(rn_50_gs_ss, self).__init__()
+        backbone = SegModels.deeplabv3_resnet50(pretrained=True)
+        rn_50 = list(backbone.children())[0]
+
+        old_conv = rn_50.conv1
+        new_conv = torch.nn.Conv2d(in_channels=1, out_channels=64, kernel_size=7, stride=(2, 2), padding=(3, 3), bias=True)
+        old_conv_weight = torch.tensor(old_conv.weight.clone().detach().requires_grad_(True))
+        new_conv_weight = torch.unsqueeze(torch.mean(old_conv_weight, dim=1), dim=1)
+        new_conv.weight = torch.nn.Parameter(new_conv_weight)
+        rn_50.conv1 = new_conv
+        self.model = rn_50
+        self.with_pooling = with_pooling
+        if self.with_pooling:
+            self.pooling = nn.AdaptiveAvgPool2d((1, 1))
+        for param in self.model.parameters():
+            param.requires_grad = True
+
+    def forward(self, ims):
+        ims = self.model(ims)
+        ims = ims["out"]
+        if self.with_pooling:
+            ims = self.pooling(ims)
+        return ims
+
+
+
 """
 rn_50_grayscale = get_grayscale_rn50_backbone()
+debug = "debug"
+"""
+
+"""
+rn_50 = rn_50_gs_ss().cuda()
+im = torch.rand(16, 1, 600, 600).cuda()
+output = rn_50(im)
 debug = "debug"
 """

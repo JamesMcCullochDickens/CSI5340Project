@@ -11,6 +11,8 @@ import torch
 from functools import partial
 import ShowImageUtils as s_utils
 import torchvision.transforms as T
+import DataAug_Utils as d_utils
+import random
 
 outer_path = PathGetter.get_fp("SUN_RGBD")
 train_test_path = "traintestSUNRGBD"

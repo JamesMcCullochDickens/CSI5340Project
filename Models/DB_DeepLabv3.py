@@ -38,10 +38,10 @@ class DA_Concat_DeepLabv3(torch.nn.Module):
         if self.training:
             predicted_seg_mask = F.interpolate(output, im_shape, mode='bilinear', align_corners=False)
             loss = self.ce_loss(predicted_seg_mask, seg_masks)
-            return loss, None
+            return None, loss
         else:
             predicted_seg_mask = F.interpolate(output, (hw_tuple[0], hw_tuple[1]), mode='bilinear',
                                                align_corners=False)
             predicted_seg_mask = torch.argmax(predicted_seg_mask, dim=1)
-            return None, predicted_seg_mask
+            return predicted_seg_mask, None
 

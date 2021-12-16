@@ -1,12 +1,14 @@
 import torch
 
 class Rotation_Predictor(torch.nn.Module):
-    def __init__(self, backbone):
+    def __init__(self, backbone, with_pooling=False):
         super(Rotation_Predictor, self).__init__()
         assert backbone is not None
         self.backbone = backbone
         self.fc = torch.nn.Linear(2048, 4)
         self.ce_loss = torch.nn.CrossEntropyLoss()
+        self.with_pooling = with_pooling
+
     def forward(self, ims, gt):
         x = self.backbone(ims)
         x = torch.flatten(x, 1)
