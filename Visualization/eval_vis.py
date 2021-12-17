@@ -8,6 +8,8 @@ import torchvision
 from torchvision import transforms
 from PIL import Image
 import matplotlib.pyplot as plt
+import pandas as pd
+import dataframe_image as dfi
 
 
 
@@ -59,9 +61,52 @@ def visualize_feat_maps(model,img_file):
                 plt.axis("off")
             plt.show()
             plt.close()
+ 
+
+
+
+def generateresulttable(accuracy_list,mloU_list):
+    # accuracy_list and mloU_list are lists containing the mean pixel accuracies(in percentange) and mloUs(in percentange) respectively
+    
+    ## Storing 5 best and 5 worst elements for each metric
+    # Mean pixel accuracy
+    accuracy_list = sorted(accuracy_list)
+    best_accuracies = sorted(accuracy_list[-5:],reverse = True)
+    worst_accuracies = sorted(accuracy_list[:5], reverse = True)
+    accuracies = best_accuracies + worst_accuracies
+    # mloU
+    mloU_list = sorted(mloU_list)
+    best_mloUs = sorted(mloU_list[-5:], reverse = True)
+    worst_mloUs = sorted(mloU_list[:5], reverse = True)
+    mloUs = best_mloUs+worst_mloUs
+    
+    
+    ## Result tables
+    arrays = [["Best results","Best results","Best results","Best results","Best results",
+               "Worst results","Worst results","Worst results","Worst results","Worst results"],
+              [1,2,3,4,5,1,2,3,4,5]]
+    index = pd.MultiIndex.from_arrays(arrays)
+    
+    # accuracy
+    accuracy_df = pd.DataFrame({'Accuracy (%)': accuracies},
+                   index=index)
+    
+    # mloU
+    mloU_df = pd.DataFrame({'mloU (%)': accuracies},
+                   index=index)
+    
+    accuracy_df.style.apply(lambda x: ['background: lightgreen' 
+                                  if (x.name ==("Best results", 1))
+                                  else '' for i in x], axis=1)
+    
+    display(accuracy_df)
+    display(mloU_df)
+    dfi.export(accuracy_df,'accuracy_table.png')
+    dfi.export(mloU_df,'mloU_table.png')
+    
 
 """            
-# Testing the function 
+# Testing the visualize_feat_maps() function 
 model = rn.get_grayscale_rn50_backbone(pre_trained=True, with_pooling=False)
 imgfile = "img.png"
 visualize_feat_maps(model,imgfile)
